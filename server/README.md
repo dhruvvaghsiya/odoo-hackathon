@@ -1,245 +1,403 @@
-# GlobeTrotter — Server
+# GlobeTrotter Backend API
 
-Express + PostgreSQL backend API for the GlobeTrotter platform.
+A comprehensive travel planning REST API built with **Node.js**, **Express.js**, and **PostgreSQL** (raw SQL via `pg`).
 
-## Tech Stack
-
-| Layer        | Technology             |
-| ------------ | ---------------------- |
-| Runtime      | Node.js                |
-| Framework    | Express 4              |
-| Database     | PostgreSQL + `pg`      |
-| Auth         | JWT + bcrypt           |
-| Validation   | express-validator      |
-| Config       | dotenv                 |
+---
 
 ## Quick Start
 
 ```bash
-# 1 — Install dependencies
+# 1. Install dependencies
 cd server
 npm install
 
-# 2 — Configure environment
+# 2. Set up environment
 cp .env.example .env
-#    → edit .env with your PostgreSQL credentials
+# Edit .env with your PostgreSQL credentials and JWT secret
 
-# 3 — Create database & seed
-createdb globetrotter
-npm run db:schema
-npm run db:seed
+# 3. Create the database
+psql -U postgres -c "CREATE DATABASE globetrotter;"
 
-# 4 — Start development server
-npm run dev
+# 4. Run schema
+psql -U postgres -d globetrotter -f database/schema.sql
+
+# 5. (Optional) Optimize search indexes
+psql -U postgres -d globetrotter -f database/search_indexes.sql
+
+# 6. Seed demo data
+psql -U postgres -d globetrotter -f database/seed.sql
+
+# 7. Start the server
+npm run dev     # development (with hot reload)
+npm start       # production
 ```
 
-The server starts on **http://localhost:5000** by default.
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `5000` | Server port |
+| `NODE_ENV` | `development` | `development` or `production` |
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_USER` | `postgres` | PostgreSQL user |
+| `DB_PASSWORD` | — | PostgreSQL password |
+| `DB_NAME` | `globetrotter` | Database name |
+| `JWT_SECRET` | — | **Required in production.** Secret for signing JWTs |
+| `JWT_EXPIRES_IN` | `7d` | Token expiry (e.g. `1h`, `7d`) |
+| `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origin |
+| `RATE_LIMIT_AUTH_WINDOW_MS` | `900000` | Auth rate limit window (15 min) |
+| `RATE_LIMIT_AUTH_MAX` | `15` | Max auth requests per window |
+| `RATE_LIMIT_API_WINDOW_MS` | `900000` | API rate limit window (15 min) |
+| `RATE_LIMIT_API_MAX` | `100` | Max API requests per window |
+
+---
+
+## Database Setup
+
+### Schema
+
+```bash
+psql -U postgres -d globetrotter -f database/schema.sql
+```
+
+Creates 9 tables: `users`, `cities`, `trips`, `trip_stops`, `activities`, `trip_activities`, `expenses`, `notifications`, `trip_shares`.
+
+### Search Indexes (Optional)
+
+```bash
+psql -U postgres -d globetrotter -f database/search_indexes.sql
+```
+
+Adds `pg_trgm` GIN indexes for fast ILIKE search on cities and activities.
+
+### Seed Data
+
+```bash
+psql -U postgres -d globetrotter -f database/seed.sql
+```
+
+Seeds: 3 users, 25 cities, 6 trips, 20+ stops, 50+ activities, trip activities, expenses, notifications, and share links.
+
+**Demo accounts** (password: `password123`):
+
+| Email | Role |
+|-------|------|
+| `alice@example.com` | user |
+| `bob@example.com` | user |
+| `charlie@example.com` | admin |
+
+---
+
+## Authentication
+
+All protected endpoints require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+Get a token via `POST /api/auth/login` or `POST /api/auth/signup`.
+
+---
 
 ## NPM Scripts
 
-| Script             | Description                          |
-| ------------------ | ------------------------------------ |
-| `npm start`        | Start the production server          |
-| `npm run dev`      | Start with nodemon (auto-reload)     |
-| `npm run db:schema`| Apply `database/schema.sql`          |
-| `npm run db:seed`  | Apply `database/seed.sql`            |
-| `npm run db:reset` | Schema + seed in one command         |
+| Script | Description |
+|--------|-------------|
+| `npm start` | Start in production mode |
+| `npm run dev` | Start with nodemon (hot reload) |
+| `npm run db:schema` | Run schema migration |
+| `npm run db:seed` | Seed demo data |
+| `npm run db:reset` | Schema + seed |
+
+---
 
 ## API Endpoints
 
 ### Health
 
-| Method | Path           | Auth | Description          |
-| ------ | -------------- | ---- | -------------------- |
-| GET    | `/api/health`  | No   | Server & DB health   |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/health` | No | Server health check |
 
-### Authentication
+### Auth
 
-| Method | Path             | Auth | Description              |
-| ------ | ---------------- | ---- | ------------------------ |
-| POST   | `/api/auth/signup` | No   | Register a new account |
-| POST   | `/api/auth/login`  | No   | Log in, receive JWT    |
-| POST   | `/api/auth/logout` | Yes  | Logout (client-side)   |
-| GET    | `/api/auth/me`     | Yes  | Get authenticated user |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/auth/signup` | No | Register new user |
+| `POST` | `/api/auth/login` | No | Login and get JWT |
 
 ### Users
 
-| Method | Path             | Auth | Description              |
-| ------ | ---------------- | ---- | ------------------------ |
-| GET    | `/api/users/me`  | Yes  | Get own profile          |
-| PATCH  | `/api/users/me`  | Yes  | Update own profile       |
-| DELETE | `/api/users/me`  | Yes  | Delete own account       |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/users/me` | Yes | Get current user profile |
+| `PATCH` | `/api/users/me` | Yes | Update profile |
+| `DELETE` | `/api/users/me` | Yes | Delete account |
 
 ### Cities (Public)
 
-| Method | Path                              | Auth | Description                   |
-| ------ | --------------------------------- | ---- | ----------------------------- |
-| GET    | `/api/cities`                     | No   | List cities (filter/sort/page)|
-| GET    | `/api/cities/search?q=`           | No   | Search cities by name         |
-| GET    | `/api/cities/popular`             | No   | Top cities by popularity      |
-| GET    | `/api/cities/:id`                 | No   | Single city by UUID           |
-| GET    | `/api/cities/:cityId/activities`  | No   | List activities for a city    |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/cities` | No | List cities (with filters, pagination) |
+| `GET` | `/api/cities/search?q=` | No | Search cities by name |
+| `GET` | `/api/cities/popular` | No | Top cities by popularity |
+| `GET` | `/api/cities/:id` | No | Get single city |
+| `GET` | `/api/cities/:cityId/activities` | No | List activities for a city |
 
-### Trips
+**City filters:** `?country=`, `?region=`, `?cost_min=`, `?cost_max=`, `?sort=`, `?order=`, `?page=`, `?limit=`
 
-| Method | Path                                    | Auth | Description                     |
-| ------ | --------------------------------------- | ---- | ------------------------------- |
-| POST   | `/api/trips`                            | Yes  | Create a trip                   |
-| GET    | `/api/trips`                            | Yes  | List own trips                  |
-| GET    | `/api/trips/:id`                        | Yes  | Get trip (own or public)        |
-| PATCH  | `/api/trips/:id`                        | Yes  | Update a trip                   |
-| DELETE | `/api/trips/:id`                        | Yes  | Delete a trip                   |
-| GET    | `/api/trips/:tripId/itinerary`          | Yes  | Full itinerary view             |
-| PATCH  | `/api/trips/:tripId/stops/reorder`      | Yes  | Reorder trip stops              |
-| GET    | `/api/trips/:tripId/timeline`           | Yes  | Scheduling timeline             |
-| PATCH  | `/api/trips/:tripId/activities/reorder` | Yes  | Reorder activities              |
+### Activities (Public)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/activities` | No | List activities (with filters) |
+| `GET` | `/api/activities/search?q=` | No | Search activities |
+| `GET` | `/api/activities/popular` | No | Top activities by popularity |
+| `GET` | `/api/activities/:id` | No | Get single activity |
+
+**Activity filters:** `?type=`, `?cost_min=`, `?cost_max=`, `?duration_min=`, `?duration_max=`, `?sort=`, `?order=`, `?page=`, `?limit=`
+
+### Unified Search (Public)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/search?q=` | No | Search across cities + activities |
+
+**Filters:** `?country=`, `?region=`, `?type=`, `?cost_min=`, `?cost_max=`, `?duration=`, `?sort=`, `?order=`, `?page=`, `?limit=`
+
+### Trips (Authenticated)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/trips` | Yes | Create trip |
+| `GET` | `/api/trips` | Yes | List own trips |
+| `GET` | `/api/trips/:id` | Yes | Get trip by ID |
+| `PATCH` | `/api/trips/:id` | Yes | Update trip |
+| `DELETE` | `/api/trips/:id` | Yes | Delete trip |
 
 ### Trip Stops
 
-| Method | Path                                             | Auth | Description             |
-| ------ | ------------------------------------------------ | ---- | ----------------------- |
-| POST   | `/api/trips/:tripId/stops`                       | Yes  | Add a stop              |
-| GET    | `/api/trips/:tripId/stops`                       | Yes  | List stops              |
-| PATCH  | `/api/trips/:tripId/stops/:stopId`               | Yes  | Update a stop           |
-| DELETE | `/api/trips/:tripId/stops/:stopId`               | Yes  | Delete a stop           |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/trips/:tripId/stops` | Yes | Add stop to trip |
+| `GET` | `/api/trips/:tripId/stops` | Yes | List stops |
+| `PATCH` | `/api/trips/:tripId/stops/:stopId` | Yes | Update stop |
+| `DELETE` | `/api/trips/:tripId/stops/:stopId` | Yes | Remove stop |
+| `PATCH` | `/api/trips/:tripId/stops/reorder` | Yes | Reorder all stops |
 
 ### Trip Activities
 
-| Method | Path                                                             | Auth | Description                |
-| ------ | ---------------------------------------------------------------- | ---- | -------------------------- |
-| POST   | `/api/trips/:tripId/stops/:stopId/activities`                    | Yes  | Add activity to stop       |
-| GET    | `/api/trips/:tripId/stops/:stopId/activities`                    | Yes  | List stop activities       |
-| PATCH  | `/api/trips/:tripId/stops/:stopId/activities/:id`                | Yes  | Update a trip activity     |
-| DELETE | `/api/trips/:tripId/stops/:stopId/activities/:id`                | Yes  | Delete a trip activity     |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/trips/:tripId/stops/:stopId/activities` | Yes | Add activity to stop |
+| `GET` | `/api/trips/:tripId/stops/:stopId/activities` | Yes | List stop activities |
+| `PATCH` | `/api/trips/:tripId/stops/:stopId/activities/:id` | Yes | Update activity |
+| `DELETE` | `/api/trips/:tripId/stops/:stopId/activities/:id` | Yes | Remove activity |
 
-### Activities (Catalog)
+### Itinerary
 
-| Method | Path                  | Auth | Description                  |
-| ------ | --------------------- | ---- | ---------------------------- |
-| GET    | `/api/activities`     | No   | List activities (filter/page)|
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/trips/:tripId/itinerary` | Yes | Full itinerary (stops, cities, summary) |
+
+### Scheduling & Timeline
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/trips/:tripId/timeline` | Yes | Day-by-day timeline with activities |
+| `PATCH` | `/api/trips/:tripId/activities/reorder` | Yes | Reorder activities (with overlap check) |
 
 ### Expenses
 
-| Method | Path                                       | Auth | Description             |
-| ------ | ------------------------------------------ | ---- | ----------------------- |
-| POST   | `/api/trips/:tripId/expenses`              | Yes  | Add an expense          |
-| GET    | `/api/trips/:tripId/expenses`              | Yes  | List expenses           |
-| PATCH  | `/api/trips/:tripId/expenses/:expenseId`   | Yes  | Update an expense       |
-| DELETE | `/api/trips/:tripId/expenses/:expenseId`   | Yes  | Delete an expense       |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/trips/:tripId/expenses` | Yes | Add expense |
+| `GET` | `/api/trips/:tripId/expenses` | Yes | List expenses |
+| `PATCH` | `/api/trips/:tripId/expenses/:expenseId` | Yes | Update expense |
+| `DELETE` | `/api/trips/:tripId/expenses/:expenseId` | Yes | Delete expense |
 
 ### Budget
 
-| Method | Path                                    | Auth | Description                      |
-| ------ | --------------------------------------- | ---- | -------------------------------- |
-| GET    | `/api/trips/:tripId/budget`             | Yes  | Basic budget summary             |
-| GET    | `/api/trips/:tripId/budget/analysis`    | Yes  | Full budget analysis & insights  |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/trips/:tripId/budget` | Yes | Budget summary (spent vs. budget) |
+| `GET` | `/api/trips/:tripId/budget/analysis` | Yes | Detailed budget analysis by category |
 
-## Database Schema
+### Sharing & Public
 
-```
-users  ──────┐
-             │ 1:N
-             ▼
-trips  ──────┤
-             │ 1:N
-             ▼
-trip_stops ──┤──── N:1 ──── cities
-             │ 1:N                │ 1:N
-             ▼                    ▼
-trip_activities ── N:1 ─── activities
-             
-expenses ──── N:1 ──── trips
-```
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/trips/:tripId/share` | Yes | Create public share link |
+| `GET` | `/api/trips/:tripId/share` | Yes | Get share info |
+| `PATCH` | `/api/trips/:tripId/share` | Yes | Toggle share active/inactive |
+| `DELETE` | `/api/trips/:tripId/share` | Yes | Delete share permanently |
+| `GET` | `/api/public/trips/:token` | No | View shared trip (public) |
+| `POST` | `/api/public/trips/:token/copy` | Yes | Copy shared trip to own account |
 
-**Tables:** `users`, `trips`, `cities`, `trip_stops`, `activities`, `trip_activities`, `expenses`
+### Notifications
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/notifications` | Yes | List notifications |
+| `PATCH` | `/api/notifications/:id/read` | Yes | Mark as read |
+| `PATCH` | `/api/notifications/read-all` | Yes | Mark all as read |
+
+### Admin (Admin Role Required)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/admin/analytics` | Admin | Platform-wide analytics |
+| `GET` | `/api/admin/users` | Admin | List all users |
+| `GET` | `/api/admin/trips` | Admin | List all trips |
+
+---
 
 ## Project Structure
 
 ```
 server/
 ├── src/
-│   ├── config/          # Environment config & DB pool
-│   ├── controllers/     # Route handlers
-│   ├── middleware/       # Auth, error handler, rate limiter, validation
-│   ├── routes/          # Express routers
-│   ├── services/        # Business logic & database queries
-│   ├── utils/           # Helpers (API response, JWT, password hashing)
-│   ├── app.js           # Express app setup
-│   └── server.js        # Entry point
+│   ├── config/
+│   │   ├── index.js           # Environment configuration
+│   │   └── db.js              # PostgreSQL connection pool (pg)
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── user.controller.js
+│   │   ├── city.controller.js
+│   │   ├── trip.controller.js
+│   │   ├── stop.controller.js
+│   │   ├── activity.controller.js
+│   │   ├── tripActivity.controller.js
+│   │   ├── itinerary.controller.js
+│   │   ├── scheduling.controller.js
+│   │   ├── expense.controller.js
+│   │   ├── budget.controller.js
+│   │   ├── share.controller.js
+│   │   ├── search.controller.js
+│   │   ├── notification.controller.js
+│   │   ├── admin.controller.js
+│   │   └── healthController.js
+│   ├── middleware/
+│   │   ├── auth.middleware.js  # JWT verification
+│   │   ├── role.middleware.js  # requireAdmin
+│   │   ├── errorHandler.js    # Central error handler
+│   │   ├── notFound.js        # 404 catch-all
+│   │   ├── rateLimiter.js     # Auth + API rate limiting
+│   │   └── validate.js        # express-validator helpers
+│   ├── routes/
+│   │   ├── index.js           # Route aggregator
+│   │   ├── auth.routes.js
+│   │   ├── user.routes.js
+│   │   ├── city.routes.js
+│   │   ├── trip.routes.js
+│   │   ├── stop.routes.js
+│   │   ├── activity.routes.js
+│   │   ├── tripActivity.routes.js
+│   │   ├── expense.routes.js
+│   │   ├── search.routes.js
+│   │   ├── public.routes.js
+│   │   ├── notification.routes.js
+│   │   ├── admin.routes.js
+│   │   └── health.js
+│   ├── services/
+│   │   ├── user.service.js
+│   │   ├── city.service.js
+│   │   ├── trip.service.js
+│   │   ├── stop.service.js
+│   │   ├── activity.service.js
+│   │   ├── tripActivity.service.js
+│   │   ├── itinerary.service.js
+│   │   ├── scheduling.service.js
+│   │   ├── expense.service.js
+│   │   ├── budget.service.js
+│   │   ├── share.service.js
+│   │   ├── search.service.js
+│   │   ├── notification.service.js
+│   │   └── admin.service.js
+│   ├── utils/
+│   │   ├── apiResponse.js     # Standard { success, message, data, error }
+│   │   ├── jwt.js             # JWT sign/verify helpers
+│   │   └── password.js        # bcrypt hash/compare
+│   ├── app.js                 # Express app setup
+│   └── server.js              # Server entry point
 ├── database/
-│   ├── schema.sql       # Table definitions
-│   └── seed.sql         # Dev seed data
+│   ├── schema.sql             # Full database schema (9 tables)
+│   ├── seed.sql               # Demo data
+│   ├── search_indexes.sql     # pg_trgm GIN indexes (optional)
+│   └── migration_trip_shares.sql  # (Legacy — now in schema.sql)
 ├── .env.example
+├── .gitignore
 ├── package.json
 └── README.md
 ```
 
+---
+
+## Security
+
+- **JWT authentication** with configurable expiry
+- **bcrypt** password hashing (12 rounds)
+- **Parameterized SQL** throughout (no string interpolation)
+- **Rate limiting** on auth (15/15min) and API (100/15min)
+- **Role-based access** — `requireAdmin` middleware for admin routes
+- **Ownership checks** — users can only access their own trips/expenses
+- **Safe error responses** — no SQL errors, stack traces, or internals leaked in production
+- **Security headers** — `X-Content-Type-Options`, `X-Frame-Options`, HSTS in production
+- **`.env` is gitignored** — secrets never committed
+
+---
+
 ## API Response Format
 
-Every endpoint returns:
+All endpoints return a consistent JSON shape:
 
 ```json
 {
   "success": true,
   "message": "OK",
-  "data": {},
+  "data": { ... },
   "error": null
 }
 ```
 
-Validation errors return `422`:
+Error responses:
 
 ```json
 {
   "success": false,
   "message": "Validation failed.",
   "data": null,
-  "error": [
-    { "field": "email", "message": "Please provide a valid email address.", "value": "not-an-email" }
-  ]
+  "error": ["amount is required."]
 }
 ```
 
-## Security
+---
 
-### Authentication
-- JWT-based authentication via `Authorization: Bearer <token>` header.
-- Passwords are hashed with **bcrypt** (12 salt rounds).
-- Tokens expire after the `JWT_EXPIRES_IN` interval (default: 7 days).
-- The `authenticate` middleware verifies the token AND checks the user still exists in the database.
+## Complete User Flow
 
-### Authorisation
-- Role-based access control via `requireRole()` / `requireAdmin` middleware.
-- Users table has a `role` column constrained to `'user'` or `'admin'`.
-- Place `requireAdmin` after `authenticate` on any admin-only route:
-  ```js
-  router.get('/admin/stats', authenticate, requireAdmin, handler);
-  ```
+```
+POST /api/auth/signup          → Create account
+POST /api/auth/login           → Get JWT token
+POST /api/trips                → Create a trip
+GET  /api/search?q=paris       → Search for a city
+POST /api/trips/:id/stops      → Add city as a stop
+POST /api/trips/:id/stops      → Add second city
+POST /api/trips/:id/stops/:stopId/activities → Add activity
+PATCH /api/trips/:id/activities/reorder      → Schedule activities
+POST /api/trips/:id/expenses   → Add expense
+GET  /api/trips/:id/budget     → View budget summary
+GET  /api/trips/:id/timeline   → View day-by-day timeline
+POST /api/trips/:id/share      → Create share link
+GET  /api/public/trips/:token  → Open public URL
+POST /api/public/trips/:token/copy → Copy trip to own account
+```
 
-### Rate Limiting
-- **Auth endpoints** (`/api/auth/*`): 15 requests per 15-minute window per IP.
-- **General API** (`/api/*`): 100 requests per 15-minute window per IP.
-- Standard `X-RateLimit-*` and `Retry-After` headers are sent.
-- Configurable via environment variables (see below).
+---
 
-### Error Handling
-- SQL errors, stack traces, and internal details are **never leaked** in production.
-- PostgreSQL error codes (unique violation, foreign key, etc.) are mapped to safe HTTP responses.
-- JWT errors return appropriate 401 messages.
-- Malformed JSON returns 400.
-- All unclassified errors return a generic `"Internal server error."` in production.
+## License
 
-### Security Headers
-- `X-Powered-By` is disabled.
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Strict-Transport-Security` is set in production.
-
-### Validation
-- All request bodies are validated using **express-validator** middleware.
-- Validation runs in the middleware chain before the controller — invalid requests never reach business logic.
-- Emails are normalised to lowercase.
-
-## Environment Variables
-
-See [`.env.example`](.env.example) for the full list.
+MIT

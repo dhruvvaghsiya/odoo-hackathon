@@ -580,6 +580,37 @@ ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
+-- TRIP SHARES — Public share links for is_public trips
+-- ============================================================
+INSERT INTO trip_shares (trip_id, public_token, is_active) VALUES
+  -- Alice: Summer in Europe (is_public = true)
+  (
+    (SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+    'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6a7b8c9d0e1f2a3b4c5d6a7b8c9d0e1f2',
+    true
+  ),
+  -- Alice: South America Highlights (is_public = true)
+  (
+    (SELECT id FROM trips WHERE name = 'South America Highlights' LIMIT 1),
+    'f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2',
+    true
+  ),
+  -- Bob: Southeast Asia Explorer (is_public = true)
+  (
+    (SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+    '11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff11',
+    true
+  ),
+  -- Charlie: Middle East & Turkey (is_public = true)
+  (
+    (SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+    'deadbeefcafebabe1234567890abcdefdeadbeefcafebabe1234567890abcdef12',
+    true
+  )
+ON CONFLICT DO NOTHING;
+
+
+-- ============================================================
 -- NOTIFICATIONS
 -- ============================================================
 INSERT INTO notifications (user_id, type, title, message, is_read, metadata) VALUES

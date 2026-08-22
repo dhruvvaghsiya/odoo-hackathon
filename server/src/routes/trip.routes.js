@@ -24,7 +24,7 @@ const {
 const authenticate = require('../middleware/auth.middleware');
 const stopRoutes = require('./stop.routes');
 const expenseRoutes = require('./expense.routes');
-const { getBudget } = require('./expense.routes');
+const { getBudget } = require('../controllers/expense.controller');
 
 const router = Router();
 
