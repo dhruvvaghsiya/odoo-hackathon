@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
-const validate = require('../middleware/validate');
+const { validate } = require('../middleware/validate');
 const authenticate = require('../middleware/auth.middleware');
 const { getMe, updateMe, deleteMe } = require('../controllers/user.controller');
 
@@ -13,7 +13,7 @@ router.get('/me', authenticate, getMe);
 router.patch(
   '/me',
   authenticate,
-  [
+  validate([
     body('name')
       .optional()
       .trim()
@@ -41,8 +41,7 @@ router.patch(
       .trim()
       .isLength({ min: 2, max: 10 })
       .withMessage('Language must be 2-10 characters'),
-  ],
-  validate,
+  ]),
   updateMe,
 );
 
@@ -50,3 +49,4 @@ router.patch(
 router.delete('/me', authenticate, deleteMe);
 
 module.exports = router;
+
