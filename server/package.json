@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "db:schema": "psql $DATABASE_URL -f database/schema.sql",
     "db:seed": "psql $DATABASE_URL -f database/seed.sql",
-    "db:reset": "npm run db:schema && npm run db:seed"
+    "db:reset": "npm run db:schema && npm run db:seed",
+    "test:validation": "node tests/trip-stop-validation.test.js"
   },
   "keywords": [
     "globetrotter",

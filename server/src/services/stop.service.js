@@ -71,6 +71,123 @@ const formatStopWithCity = (row) => ({
   },
 });
 
+/**
+ * Get the current total stop count for a trip.
+ * @param {import('pg').PoolClient|object} client  DB client or pool
+ * @param {string} tripId
+ * @returns {Promise<number>}
+ */
+const getStopCount = async (client, tripId) => {
+  const { rows } = await client.query(
+    'SELECT COUNT(*)::int AS count FROM trip_stops WHERE trip_id = $1',
+    [tripId],
+  );
+  return rows[0].count;
+};
+
+// ── Date / overlap validation ──────────────────────────
+
+/**
+ * Validate that stop dates fall within the trip's date range.
+ * Throws an operational error (statusCode 400) if invalid.
+ */
+const validateStopDatesWithinTrip = (stopData, trip) => {
+  const stopStart = stopData.start_date ? new Date(stopData.start_date) : null;
+  const stopEnd = stopData.end_date ? new Date(stopData.end_date) : null;
+  const tripStart = trip.start_date ? new Date(trip.start_date) : null;
+  const tripEnd = trip.end_date ? new Date(trip.end_date) : null;
+
+  // start_date <= end_date
+  if (stopStart && stopEnd && stopStart > stopEnd) {
+    const err = new Error('Stop start_date must be on or before end_date.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Stop start must be within trip range
+  if (stopStart && tripStart && stopStart < tripStart) {
+    const err = new Error(
+      `Stop start_date (${stopData.start_date}) cannot be before the trip start_date (${trip.start_date}).`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  if (stopStart && tripEnd && stopStart > tripEnd) {
+    const err = new Error(
+      `Stop start_date (${stopData.start_date}) cannot be after the trip end_date (${trip.end_date}).`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Stop end must be within trip range
+  if (stopEnd && tripStart && stopEnd < tripStart) {
+    const err = new Error(
+      `Stop end_date (${stopData.end_date}) cannot be before the trip start_date (${trip.start_date}).`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  if (stopEnd && tripEnd && stopEnd > tripEnd) {
+    const err = new Error(
+      `Stop end_date (${stopData.end_date}) cannot be after the trip end_date (${trip.end_date}).`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+};
+
+/**
+ * Detect whether a new/updated stop's date range overlaps with existing stops.
+ *
+ * Two stops overlap when:
+ *   new.start_date <= existing.end_date AND new.end_date >= existing.start_date
+ *
+ * Stops without dates are excluded from overlap checks.
+ *
+ * @param {import('pg').PoolClient} client  - transaction client
+ * @param {string} tripId
+ * @param {string|null} excludeStopId  - stop to exclude (for updates)
+ * @param {string|null} startDate
+ * @param {string|null} endDate
+ */
+const detectOverlap = async (client, tripId, excludeStopId, startDate, endDate) => {
+  if (!startDate && !endDate) return; // No dates → skip overlap check
+
+  const effectiveStart = startDate || endDate;  // single-day if only one date
+  const effectiveEnd = endDate || startDate;
+
+  let sql = `
+    SELECT ts.stop_order, c.name AS city_name
+    FROM trip_stops ts
+    JOIN cities c ON c.id = ts.city_id
+    WHERE ts.trip_id = $1
+      AND ts.start_date IS NOT NULL
+      AND ts.end_date IS NOT NULL
+      AND ts.start_date <= $2::date
+      AND ts.end_date   >= $3::date
+  `;
+  const params = [tripId, effectiveEnd, effectiveStart];
+
+  if (excludeStopId) {
+    sql += ' AND ts.id != $4';
+    params.push(excludeStopId);
+  }
+
+  const { rows } = await client.query(sql, params);
+
+  if (rows.length > 0) {
+    const conflicting = rows
+      .map((r) => `stop #${r.stop_order} (${r.city_name})`)
+      .join(', ');
+    const err = new Error(
+      `Date range overlaps with existing stop(s): ${conflicting}.`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+};
+
 // ── CREATE ─────────────────────────────────────────────
 
 /**
@@ -106,17 +223,27 @@ const create = async (tripId, userId, data) => {
   try {
     await client.query('BEGIN');
 
+    // Check for date overlap with existing stops
+    await detectOverlap(client, tripId, null, data.start_date, data.end_date);
+
     // Determine stop_order
+    const totalStops = await getStopCount(client, tripId);
     let stopOrder = data.stop_order;
 
     if (stopOrder === undefined || stopOrder === null) {
       // Auto-assign: next available order
-      const { rows: maxRows } = await client.query(
-        'SELECT COALESCE(MAX(stop_order), 0) + 1 AS next_order FROM trip_stops WHERE trip_id = $1',
-        [tripId],
-      );
-      stopOrder = maxRows[0].next_order;
+      stopOrder = totalStops + 1;
     } else {
+      // Validate stop_order is within valid range
+      const maxAllowed = totalStops + 1;
+      if (stopOrder > maxAllowed) {
+        const err = new Error(
+          `stop_order ${stopOrder} is out of range. Maximum allowed is ${maxAllowed}.`,
+        );
+        err.statusCode = 400;
+        throw err;
+      }
+
       // Shift existing stops at or after this position
       await client.query(
         `UPDATE trip_stops
@@ -217,6 +344,7 @@ const findById = async (stopId) => {
  * Partially update a stop.
  *
  * If stop_order changes, uses a transaction to reorder atomically.
+ * Detects date overlaps with sibling stops.
  *
  * @param {string} stopId
  * @param {string} tripId
@@ -234,7 +362,7 @@ const update = async (stopId, tripId, userId, data) => {
 
   // Verify stop belongs to this trip
   const { rows: stopRows } = await db.query(
-    'SELECT id, stop_order FROM trip_stops WHERE id = $1 AND trip_id = $2',
+    'SELECT id, stop_order, start_date, end_date FROM trip_stops WHERE id = $1 AND trip_id = $2',
     [stopId, tripId],
   );
   if (stopRows.length === 0) {
@@ -254,17 +382,37 @@ const update = async (stopId, tripId, userId, data) => {
     }
   }
 
-  // Validate stop dates within trip
-  validateStopDatesWithinTrip(data, trip);
+  // Validate stop dates within trip (merge with existing dates for partial updates)
+  const effectiveStartDate = data.start_date !== undefined ? data.start_date : existingStop.start_date;
+  const effectiveEndDate = data.end_date !== undefined ? data.end_date : existingStop.end_date;
+  validateStopDatesWithinTrip(
+    { start_date: effectiveStartDate, end_date: effectiveEndDate },
+    trip,
+  );
 
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
 
+    // Check for date overlap (excluding this stop itself)
+    if (data.start_date !== undefined || data.end_date !== undefined) {
+      await detectOverlap(client, tripId, stopId, effectiveStartDate, effectiveEndDate);
+    }
+
     // Handle reordering if stop_order changes
     if (data.stop_order !== undefined && data.stop_order !== existingStop.stop_order) {
+      const totalStops = await getStopCount(client, tripId);
       const oldOrder = existingStop.stop_order;
       const newOrder = data.stop_order;
+
+      // Validate new order is within range
+      if (newOrder > totalStops) {
+        const err = new Error(
+          `stop_order ${newOrder} is out of range. Maximum allowed is ${totalStops}.`,
+        );
+        err.statusCode = 400;
+        throw err;
+      }
 
       if (newOrder > oldOrder) {
         // Moving down: shift stops between old+1..new up by -1
@@ -383,50 +531,6 @@ const remove = async (stopId, tripId, userId) => {
     throw err;
   } finally {
     client.release();
-  }
-};
-
-// ── Date validation helper ─────────────────────────────
-
-/**
- * Validate that stop dates fall within the trip's date range.
- * Throws an operational error (statusCode 400) if invalid.
- */
-const validateStopDatesWithinTrip = (stopData, trip) => {
-  const stopStart = stopData.start_date ? new Date(stopData.start_date) : null;
-  const stopEnd = stopData.end_date ? new Date(stopData.end_date) : null;
-  const tripStart = trip.start_date ? new Date(trip.start_date) : null;
-  const tripEnd = trip.end_date ? new Date(trip.end_date) : null;
-
-  // start_date <= end_date
-  if (stopStart && stopEnd && stopStart > stopEnd) {
-    const err = new Error('Stop start_date must be on or before end_date.');
-    err.statusCode = 400;
-    throw err;
-  }
-
-  // Stop start must be within trip range
-  if (stopStart && tripStart && stopStart < tripStart) {
-    const err = new Error('Stop start_date cannot be before the trip start_date.');
-    err.statusCode = 400;
-    throw err;
-  }
-  if (stopStart && tripEnd && stopStart > tripEnd) {
-    const err = new Error('Stop start_date cannot be after the trip end_date.');
-    err.statusCode = 400;
-    throw err;
-  }
-
-  // Stop end must be within trip range
-  if (stopEnd && tripStart && stopEnd < tripStart) {
-    const err = new Error('Stop end_date cannot be before the trip start_date.');
-    err.statusCode = 400;
-    throw err;
-  }
-  if (stopEnd && tripEnd && stopEnd > tripEnd) {
-    const err = new Error('Stop end_date cannot be after the trip end_date.');
-    err.statusCode = 400;
-    throw err;
   }
 };
 
