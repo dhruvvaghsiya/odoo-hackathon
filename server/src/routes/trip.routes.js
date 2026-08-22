@@ -15,6 +15,12 @@ const {
   getTimeline,
 } = require('../controllers/scheduling.controller');
 const { getBudgetAnalysis } = require('../controllers/budget.controller');
+const {
+  createShare,
+  getShare,
+  updateShare,
+  deleteShare,
+} = require('../controllers/share.controller');
 const authenticate = require('../middleware/auth.middleware');
 const stopRoutes = require('./stop.routes');
 const expenseRoutes = require('./expense.routes');
@@ -42,6 +48,12 @@ router.patch('/:tripId/activities/reorder', reorderActivities);
 // ── Budget endpoints ───────────────────────────────────
 router.get('/:tripId/budget/analysis', getBudgetAnalysis);
 router.get('/:tripId/budget', getBudget);
+
+// ── Share endpoints ────────────────────────────────────
+router.post('/:tripId/share', createShare);
+router.get('/:tripId/share', getShare);
+router.patch('/:tripId/share', updateShare);
+router.delete('/:tripId/share', deleteShare);
 
 // ── Nested sub-routes (must come after named paths) ────
 router.use('/:tripId/stops', stopRoutes);
