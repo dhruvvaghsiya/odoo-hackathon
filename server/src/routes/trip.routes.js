@@ -10,6 +10,10 @@ const {
   reorderStops,
   getItinerary,
 } = require('../controllers/itinerary.controller');
+const {
+  reorderActivities,
+  getTimeline,
+} = require('../controllers/scheduling.controller');
 const authenticate = require('../middleware/auth.middleware');
 const stopRoutes = require('./stop.routes');
 
@@ -28,9 +32,14 @@ router.delete('/:id', deleteTrip);
 router.get('/:tripId/itinerary', getItinerary);
 router.patch('/:tripId/stops/reorder', reorderStops);
 
-// ── Nested stop routes (must come after /reorder) ──────
+// ── Scheduling endpoints ───────────────────────────────
+router.get('/:tripId/timeline', getTimeline);
+router.patch('/:tripId/activities/reorder', reorderActivities);
+
+// ── Nested stop routes (must come after named paths) ───
 router.use('/:tripId/stops', stopRoutes);
 
 module.exports = router;
+
 
 
