@@ -32,8 +32,8 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
-  const signup = useCallback(async (name, email, password) => {
-    const res = await authService.signup(name, email, password);
+  const signup = useCallback(async (payloadOrName, email, password) => {
+    const res = await authService.signup(payloadOrName, email, password);
     const { user: userData, token } = res.data;
     localStorage.setItem('globetrotter_token', token);
     setUser(userData);

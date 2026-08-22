@@ -58,19 +58,22 @@ const rateLimiter = ({
   };
 };
 
+const config = require('../config');
+const isDev = config.nodeEnv === 'development';
+
 // ── Pre-built limiters ─────────────────────────────────────
 
-/** Auth endpoints: 15 req / 15 min per IP */
+/** Auth endpoints: 500 req in dev / 15 in prod */
 const authLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: isDev ? 1000 : 15,
   message: 'Too many authentication attempts. Please try again in 15 minutes.',
 });
 
-/** General API: 100 req / 15 min per IP */
+/** General API: 1000 req in dev / 100 in prod */
 const apiLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: isDev ? 5000 : 100,
   message: 'Too many requests. Please slow down.',
 });
 

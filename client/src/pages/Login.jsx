@@ -39,11 +39,11 @@ export default function Login() {
   const hero = HERO_SLIDES[slide];
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       toast.success('Welcome back to GlobeTrotter.');
       navigate('/');
     } catch (err) {
@@ -53,59 +53,75 @@ export default function Login() {
     }
   };
 
-  const setDemoAccount = (demoEmail) => {
+  const handleQuickLogin = async (demoEmail) => {
     setEmail(demoEmail);
     setPassword('password123');
+    setLoading(true);
+    setError(null);
+    try {
+      await login(demoEmail, 'password123');
+      toast.success(`Signed in successfully as ${demoEmail.split('@')[0]}.`);
+      navigate('/');
+    } catch (err) {
+      setError(formatErrorMessage(err, 'Unable to sign in with demo account. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex bg-ink overflow-hidden">
 
-      {/* ── LEFT: High-Quality Destination Image ─────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden flex-col">
-        {/* Background image */}
+      {/* ── LEFT: High-Quality Destination Image with High-Contrast Overlay ── */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden flex-col justify-between p-10 bg-ink">
+        {/* Background image with calibrated opacity */}
         <img
           src={hero.src}
           alt={hero.city}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[15000ms] ease-linear scale-110 animate-ken-burns"
+          className="absolute inset-0 w-full h-full object-cover opacity-45 transition-transform duration-[20000ms] ease-linear scale-110 animate-ken-burns"
         />
-        {/* Deep gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-ink/20" />
+        {/* Multi-layer dark contrast gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-ink/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-ink/40" />
 
-        {/* Floating atmospheric elements */}
-        <div className="absolute top-8 left-8 text-white/10 font-mono text-xs tracking-[0.3em] animate-fade-in">
-          GLOBETROTTER · JOURNEY CANVAS
-        </div>
-        <div className="absolute top-12 right-8 text-white/15 font-mono text-[10px] tracking-widest animate-fade-in" style={{ animationDelay: '0.5s' }}>
-          48.8566°N · 2.3522°E
+        {/* Top Header Bar with high-contrast pills */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-mono tracking-widest shadow-md">
+            <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
+            GLOBETROTTER
+          </div>
+          <div className="bg-black/60 backdrop-blur-md text-white/80 font-mono text-[11px] px-3 py-1 rounded-full border border-white/10 tracking-wider">
+            48.8566°N · 2.3522°E
+          </div>
         </div>
 
-        {/* Brand + quote content */}
-        <div className="relative z-10 flex flex-col justify-end h-full p-10 pb-14 max-w-lg animate-slide-up">
-          <span className="travel-stamp text-terracotta border-terracotta bg-white/10 text-[10px] mb-6 self-start animate-stamp">
-            SCREEN 1 · SIGN IN
+        {/* Frosted High-Contrast Editorial Card */}
+        <div className="relative z-10 max-w-lg bg-ink/85 backdrop-blur-md border border-white/15 p-8 rounded-xl shadow-2xl space-y-4 animate-slide-up">
+          <span className="travel-stamp text-terracotta border-terracotta bg-terracotta/15 text-[10px] font-bold px-2.5 py-1 rounded-xs inline-block animate-stamp">
+            JOURNEY CANVAS · SIGN IN
           </span>
 
-          <h1 className="font-display text-4xl xl:text-5xl text-white leading-tight mb-4">
+          <h1 className="font-display text-3xl xl:text-4xl text-white leading-snug drop-shadow-sm">
             {hero.quote.split(' ').slice(0, 4).join(' ')}{' '}
-            <em className="text-terracotta-light not-italic">
+            <em className="text-terracotta-light not-italic font-medium">
               {hero.quote.split(' ').slice(4).join(' ')}
             </em>
           </h1>
 
-          <div className="flex items-center gap-3 mt-4">
-            <div className="h-px flex-1 bg-white/20" />
-            <span className="text-white/60 text-sm font-light">{hero.city}</span>
+          <div className="flex items-center gap-3 pt-2 border-t border-white/15">
+            <span className="text-terracotta-light font-mono text-xs font-semibold uppercase tracking-wider">
+              Featured Destination:
+            </span>
+            <span className="text-white font-medium text-sm">{hero.city}</span>
           </div>
 
-          {/* Slide dots */}
-          <div className="flex gap-2 mt-6">
+          {/* Slide indicator dots */}
+          <div className="flex gap-2 pt-2">
             {HERO_SLIDES.map((_, i) => (
               <div
                 key={i}
-                className={`h-0.5 rounded-full transition-all duration-300 ${
-                  i === slide ? 'w-8 bg-terracotta' : 'w-3 bg-white/30'
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i === slide ? 'w-8 bg-terracotta' : 'w-2.5 bg-white/30'
                 }`}
               />
             ))}
@@ -214,14 +230,19 @@ export default function Login() {
               <button
                 key={p.email}
                 type="button"
-                onClick={() => setDemoAccount(p.email)}
-                className={`p-3 border rounded-xs text-left text-xs transition-all card-hover-lift group ${
+                disabled={loading}
+                onClick={() => handleQuickLogin(p.email)}
+                className={`p-3 border rounded-xs text-left text-xs transition-all card-hover-lift group cursor-pointer ${
                   email === p.email
                     ? 'border-terracotta bg-terracotta/5 text-terracotta'
                     : 'border-warm-gray-lighter hover:border-terracotta/50 bg-paper'
                 }`}
+                title={`1-Click Sign In as ${p.name}`}
               >
-                <p.Icon size={16} className={`mb-1.5 ${p.color}`} />
+                <div className="flex items-center justify-between mb-1">
+                  <p.Icon size={16} className={p.color} />
+                  <span className="text-[9px] font-mono text-ink-subtle uppercase">Quick ⚡</span>
+                </div>
                 <span className="font-semibold block text-ink">{p.name}</span>
                 <span className="text-[10px] text-ink-subtle">{p.role}</span>
               </button>

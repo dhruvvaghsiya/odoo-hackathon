@@ -103,49 +103,53 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex bg-ink overflow-hidden">
 
-      {/* ── LEFT: High-Quality Destination Image ─────────────── */}
-      <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden flex-col justify-between p-10">
-        {/* Background image */}
+      {/* ── LEFT: High-Quality Destination Image with High-Contrast Overlay ── */}
+      <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden flex-col justify-between p-10 bg-ink">
+        {/* Background image with calibrated opacity */}
         <img
           src={hero.src}
           alt={hero.city}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20000ms] ease-linear scale-110 animate-ken-burns"
+          className="absolute inset-0 w-full h-full object-cover opacity-45 transition-transform duration-[20000ms] ease-linear scale-110 animate-ken-burns"
         />
-        {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-ink/30" />
+        {/* Multi-layer dark contrast gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-ink/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-ink/40" />
 
-        {/* Top Header */}
-        <div className="relative z-10">
-          <div className="text-white/20 font-mono text-xs tracking-[0.3em] mb-2">
-            GLOBETROTTER · JOURNEY CANVAS
+        {/* Top Header Bar with high-contrast pills */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-mono tracking-widest shadow-md">
+            <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
+            GLOBETROTTER
           </div>
-          <span className="travel-stamp text-terracotta border-terracotta bg-white/10 text-[10px] animate-stamp">
-            SCREEN 2 · REGISTER USERS
+          <div className="bg-black/60 backdrop-blur-md text-white/80 font-mono text-[11px] px-3 py-1 rounded-full border border-white/10 tracking-wider">
+            35.6762°N · 139.6503°E
+          </div>
+        </div>
+
+        {/* Frosted High-Contrast Editorial Card */}
+        <div className="relative z-10 max-w-md bg-ink/85 backdrop-blur-md border border-white/15 p-8 rounded-xl shadow-2xl space-y-4 animate-slide-up">
+          <span className="travel-stamp text-terracotta border-terracotta bg-terracotta/15 text-[10px] font-bold px-2.5 py-1 rounded-xs inline-block animate-stamp">
+            JOURNEY CANVAS · REGISTER USERS
           </span>
-        </div>
 
-        {/* Atmospheric Floating Elements */}
-        <div className="absolute top-1/3 left-12 text-white/5 font-mono text-sm select-none pointer-events-none tracking-widest animate-float" style={{ animationDuration: '8s' }}>
-          ◎ LAT 35.6762° · LON 139.6503°
-        </div>
-
-        {/* Bottom Quote & Destination */}
-        <div className="relative z-10 max-w-md animate-slide-up">
-          <h2 className="font-display text-3xl xl:text-4xl text-white leading-tight mb-4">
+          <h2 className="font-display text-3xl xl:text-4xl text-white leading-snug drop-shadow-sm">
             {hero.quote}
           </h2>
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-white/20" />
-            <span className="text-white/70 text-sm font-light">{hero.city}</span>
+
+          <div className="flex items-center gap-3 pt-2 border-t border-white/15">
+            <span className="text-terracotta-light font-mono text-xs font-semibold uppercase tracking-wider">
+              Featured Destination:
+            </span>
+            <span className="text-white font-medium text-sm">{hero.city}</span>
           </div>
 
-          <div className="flex gap-2 mt-6">
+          {/* Slide indicator dots */}
+          <div className="flex gap-2 pt-2">
             {SIGNUP_HERO_SLIDES.map((_, i) => (
               <div
                 key={i}
-                className={`h-0.5 rounded-full transition-all duration-300 ${
-                  i === slide ? 'w-8 bg-terracotta' : 'w-3 bg-white/30'
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i === slide ? 'w-8 bg-terracotta' : 'w-2.5 bg-white/30'
                 }`}
               />
             ))}
