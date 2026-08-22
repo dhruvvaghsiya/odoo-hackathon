@@ -13,7 +13,20 @@ const sanitiseUser = ({ password_hash, ...rest }) => rest;
 
 const signup = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      name,
+      first_name,
+      last_name,
+      email,
+      password,
+      phone,
+      city,
+      country,
+      additional_info,
+      profile_photo,
+    } = req.body;
+
+    const fullName = (name || `${first_name || ''} ${last_name || ''}`).trim() || 'Explorer';
 
     // ── Duplicate email check ───────────────────────
     const { rows: existing } = await query(
@@ -32,10 +45,19 @@ const signup = async (req, res, next) => {
     const hashedPassword = await hashPassword(password);
 
     const { rows } = await query(
-      `INSERT INTO users (name, email, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING id, name, email, profile_photo, language, role, created_at, updated_at`,
-      [name.trim(), email.trim().toLowerCase(), hashedPassword],
+      `INSERT INTO users (name, email, password_hash, profile_photo, phone, city, country, additional_info)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, name, email, profile_photo, phone, city, country, additional_info, language, role, created_at, updated_at`,
+      [
+        fullName,
+        email.trim().toLowerCase(),
+        hashedPassword,
+        profile_photo || null,
+        phone || null,
+        city || null,
+        country || null,
+        additional_info || null,
+      ],
     );
 
     const user = rows[0];

@@ -3,24 +3,32 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { tripsService } from '../services/trips';
 import { citiesService } from '../services/cities';
-import PageHeader from '../components/PageHeader';
-import SectionLabel from '../components/SectionLabel';
 import TripCard from '../components/TripCard';
 import CityCard from '../components/CityCard';
 import LoadingState from '../components/LoadingState';
-import { formatDateRange, daysUntil } from '../utils/formatDate';
+import { formatDateRange } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import { getCityImage } from '../utils/constants';
 import {
   Plus,
   Compass,
   ArrowRight,
+  Search,
+  SlidersHorizontal,
+  Filter,
+  Layers,
   MapPin,
   Calendar,
   Sparkles,
-  DollarSign,
-  TrendingUp,
 } from 'lucide-react';
+
+const REGIONS = [
+  { name: 'Europe', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&q=80', description: 'Historic castles, alpine peaks & rich culture' },
+  { name: 'Asia', image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=600&q=80', description: 'Ancient temples, futuristic skylines & night markets' },
+  { name: 'Americas', image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600&q=80', description: 'National parks, iconic cities & vibrant rhythms' },
+  { name: 'Africa', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80', description: 'Safari plains, coastal dunes & spice markets' },
+  { name: 'Oceania', image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600&q=80', description: 'Reef adventures, fjord treks & sun-kissed harbors' },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -30,6 +38,12 @@ export default function Dashboard() {
   const [popularCities, setPopularCities] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Screen 3 Filter & Search Controls
+  const [searchQuery, setSearchQuery] = useState('');
+  const [groupBy, setGroupBy] = useState('none');
+  const [filterRegion, setFilterRegion] = useState('all');
+  const [sortBy, setSortBy] = useState('date_desc');
+
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -38,8 +52,8 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const [tripsRes, citiesRes] = await Promise.all([
-        tripsService.list({ limit: 4 }),
-        citiesService.popular({ limit: 6 }),
+        tripsService.list({ limit: 12 }),
+        citiesService.popular({ limit: 8 }),
       ]);
       setTrips(tripsRes.data?.trips || []);
       setPopularCities(citiesRes.data?.cities || []);
@@ -51,138 +65,189 @@ export default function Dashboard() {
   };
 
   const upcomingTrip = trips.find((t) => t.start_date && new Date(t.start_date) >= new Date()) || trips[0];
-  const daysToDeparture = upcomingTrip?.start_date ? daysUntil(upcomingTrip.start_date) : null;
+
+  // Filter & sort trips
+  const filteredTrips = trips
+    .filter((t) => {
+      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date_asc') return new Date(a.start_date || 0) - new Date(b.start_date || 0);
+      if (sortBy === 'date_desc') return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'budget') return (b.total_budget || 0) - (a.total_budget || 0);
+      return 0;
+    });
 
   if (loading) {
     return (
       <div className="page page-content">
-        <LoadingState lines={5} />
+        <LoadingState lines={6} />
       </div>
     );
   }
 
   return (
-    <div className="page page-wide space-y-12">
-      {/* Editorial Header */}
-      <PageHeader
-        stamp="TRAVEL LOG / OVERVIEW"
-        coordinates="GLOBAL NAVIGATION SYSTEM"
-        title={`Welcome, ${user?.name?.split(' ')[0] || 'Explorer'}.`}
-        subtitle="Your journey canvas is ready. Review your upcoming departures, manage active itineraries, or discover your next route."
-        action={
-          <Link to="/trips/new" className="btn btn-terracotta no-underline shadow-xs">
-            <Plus size={16} /> New Journey Canvas
-          </Link>
-        }
-      />
+    <div className="page page-wide space-y-10">
+      {/* ── Screen 3: Banner Image ─────────────────────────────────── */}
+      <div className="relative surface overflow-hidden bg-ink text-paper rounded-lg shadow-md min-h-[300px] md:min-h-[380px] flex flex-col justify-end p-6 md:p-10">
+        <img
+          src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=80"
+          alt="Banner Image"
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
 
-      {/* Hero Featured Trip Banner (if user has a trip) */}
-      {upcomingTrip ? (
-        <div className="relative surface overflow-hidden bg-ink text-paper p-6 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 shadow-md">
-          {/* Background image overlay */}
-          <div className="absolute inset-0 z-0 opacity-25">
-            <img
-              src={upcomingTrip.cover_photo || getCityImage(upcomingTrip.stops?.[0]?.city) || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80'}
-              alt="Trip hero"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 max-w-xl">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="travel-stamp text-terracotta bg-white/10 backdrop-blur-xs border-terracotta text-[9px]">
-                FEATURED EXPEDITION
-              </span>
-              {daysToDeparture !== null && daysToDeparture >= 0 && (
-                <span className="text-xs font-mono text-warm-gray-light">
-                  • DEPARTS IN {daysToDeparture} DAYS
-                </span>
-              )}
-            </div>
-
-            <h2 className="font-display text-3xl md:text-5xl text-white leading-tight mb-2">
-              {upcomingTrip.name}
-            </h2>
-
-            <div className="flex flex-wrap items-center gap-4 text-xs text-warm-gray-light font-light mt-3">
-              <div className="flex items-center gap-1.5">
-                <Calendar size={13} className="text-terracotta" />
-                <span>{formatDateRange(upcomingTrip.start_date, upcomingTrip.end_date) || 'Dates pending'}</span>
-              </div>
-              {upcomingTrip.total_budget && (
-                <div className="flex items-center gap-1.5 font-mono">
-                  <DollarSign size={13} className="text-olive" />
-                  <span>Budget: {formatCurrency(upcomingTrip.total_budget, upcomingTrip.currency)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="relative z-10 shrink-0">
-            <Link
-              to={`/trips/${upcomingTrip.id}`}
-              className="btn btn-terracotta !px-6 !py-3 no-underline shadow-sm flex items-center gap-2"
-            >
-              Open Journey Canvas <ArrowRight size={16} />
+        <div className="relative z-10 max-w-2xl space-y-2">
+          <span className="travel-stamp text-terracotta bg-white/10 backdrop-blur-xs border-terracotta text-[10px]">
+            MAIN LANDING PAGE (SCREEN 3)
+          </span>
+          <h1 className="text-display text-3xl md:text-5xl text-white font-normal leading-tight">
+            Banner Image & Exploration Hub
+          </h1>
+          <p className="text-warm-gray-light text-sm md:text-base font-light">
+            Welcome back, {user?.name || 'Explorer'}. Plan multi-city journeys, discover top regional selections, and track your travel ledger.
+          </p>
+          <div className="pt-2">
+            <Link to="/trips/new" className="btn btn-terracotta no-underline shadow-sm">
+              <Plus size={16} /> + Plan a trip
             </Link>
           </div>
         </div>
-      ) : (
-        /* Empty Welcome State */
-        <div className="surface p-10 text-center border-dashed border-2 border-warm-gray-lighter">
-          <Compass size={40} className="mx-auto mb-3 text-terracotta" />
-          <h3 className="font-display text-2xl text-ink mb-2">No Active Journeys Yet</h3>
-          <p className="text-sm text-ink-muted max-w-md mx-auto mb-6 font-light">
-            Start designing your first multi-city trip. Map your destinations, schedule day-by-day activities, and keep budget in sync.
-          </p>
-          <Link to="/trips/new" className="btn btn-terracotta no-underline">
-            <Plus size={16} /> Create Your First Journey
+      </div>
+
+      {/* ── Screen 3: Search Bar + Group By + Filter + Sort By Controls ── */}
+      <div className="surface p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+        {/* Search Bar */}
+        <div className="relative flex-1 w-full">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-subtle" />
+          <input
+            type="text"
+            placeholder="Search bar ..... (search trips, destinations)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field !pl-9 text-sm"
+          />
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          {/* Group by */}
+          <div className="flex items-center gap-1">
+            <Layers size={14} className="text-ink-subtle" />
+            <select
+              value={groupBy}
+              onChange={(e) => setGroupBy(e.target.value)}
+              className="input-field !py-2 !px-2 text-xs font-mono"
+            >
+              <option value="none">Group by: None</option>
+              <option value="status">Group by: Status</option>
+              <option value="year">Group by: Year</option>
+            </select>
+          </div>
+
+          {/* Filter */}
+          <div className="flex items-center gap-1">
+            <Filter size={14} className="text-ink-subtle" />
+            <select
+              value={filterRegion}
+              onChange={(e) => setFilterRegion(e.target.value)}
+              className="input-field !py-2 !px-2 text-xs font-mono"
+            >
+              <option value="all">Filter: All Regions</option>
+              <option value="Europe">Europe</option>
+              <option value="Asia">Asia</option>
+              <option value="Americas">Americas</option>
+              <option value="Africa">Africa</option>
+              <option value="Oceania">Oceania</option>
+            </select>
+          </div>
+
+          {/* Sort by */}
+          <div className="flex items-center gap-1">
+            <SlidersHorizontal size={14} className="text-ink-subtle" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="input-field !py-2 !px-2 text-xs font-mono"
+            >
+              <option value="date_desc">Sort by: Newest</option>
+              <option value="date_asc">Sort by: Oldest</option>
+              <option value="name">Sort by: Name</option>
+              <option value="budget">Sort by: Budget</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Screen 3: Top Regional Selections ─────────────────────── */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-warm-gray-lighter pb-2">
+          <h3 className="font-display text-2xl text-ink">Top Regional Selections</h3>
+          <span className="text-xs text-ink-subtle font-mono">GLOBAL DESTINATIONS</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          {REGIONS.map((region) => (
+            <div
+              key={region.name}
+              onClick={() => navigate(`/discover?region=${encodeURIComponent(region.name)}`)}
+              className="surface overflow-hidden group cursor-pointer hover:shadow-md hover:border-ink transition-all duration-300 flex flex-col"
+            >
+              <div className="relative h-28 overflow-hidden bg-paper-warm">
+                <img
+                  src={region.image}
+                  alt={region.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
+                <span className="absolute bottom-2 left-2 right-2 text-white font-display text-lg">
+                  {region.name}
+                </span>
+              </div>
+              <div className="p-2.5 flex-1 flex flex-col justify-between">
+                <p className="text-[11px] text-ink-muted line-clamp-2 font-light">
+                  {region.description}
+                </p>
+                <span className="text-[10px] text-terracotta font-semibold mt-2 block">
+                  Explore Region →
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Screen 3: Previous Trips + Plan a trip CTA ─────────────── */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-warm-gray-lighter pb-2">
+          <h3 className="font-display text-2xl text-ink">Previous Trips</h3>
+          <Link to="/trips/new" className="btn btn-terracotta btn-sm no-underline shadow-xs">
+            <Plus size={14} /> + Plan a trip
           </Link>
         </div>
-      )}
 
-      {/* Recent Trips Section */}
-      {trips.length > 0 && (
-        <div>
-          <SectionLabel
-            label="YOUR RECENT EXPEDITIONS"
-            count={trips.length}
-            action={
-              <Link to="/trips" className="text-xs text-terracotta font-semibold hover:underline flex items-center gap-1">
-                View All Trips <ArrowRight size={12} />
-              </Link>
-            }
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {trips.map((trip) => (
+        {filteredTrips.length === 0 ? (
+          <div className="surface p-10 text-center border-dashed border-2 border-warm-gray-lighter">
+            <Compass size={36} className="mx-auto mb-2 text-terracotta opacity-60" />
+            <h4 className="font-display text-xl text-ink">No Recorded Trips Yet</h4>
+            <p className="text-xs text-ink-muted max-w-sm mx-auto my-3 font-light">
+              You have not created any journeys yet. Start planning your first itinerary.
+            </p>
+            <Link to="/trips/new" className="btn btn-terracotta btn-sm no-underline">
+              <Plus size={14} /> + Plan a trip
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTrips.map((trip) => (
               <TripCard key={trip.id} trip={trip} />
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Popular Destination Inspiration */}
-      <div>
-        <SectionLabel
-          label="CURATED DESTINATIONS FOR YOUR CANVAS"
-          action={
-            <Link to="/discover" className="text-xs text-terracotta font-semibold hover:underline flex items-center gap-1">
-              Explore All <ArrowRight size={12} />
-            </Link>
-          }
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {popularCities.map((city) => (
-            <CityCard
-              key={city.id}
-              city={city}
-              onAdd={() => navigate(`/trips/new?destination=${encodeURIComponent(city.name)}`)}
-            />
-          ))}
-        </div>
-      </div>
+        )}
+      </section>
     </div>
   );
 }

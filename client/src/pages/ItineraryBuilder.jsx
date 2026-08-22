@@ -23,6 +23,9 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Edit2,
+  Layers,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function ItineraryBuilder() {
@@ -35,6 +38,9 @@ export default function ItineraryBuilder() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // View switch: 'sections' (Screen 5 wireframe) | 'canvas' (Route Visualizer)
+  const [viewMode, setViewMode] = useState('sections');
 
   // Discovery Drawers state
   const [isCityDiscoveryOpen, setIsCityDiscoveryOpen] = useState(false);
@@ -65,7 +71,6 @@ export default function ItineraryBuilder() {
     }
   };
 
-  // Add a stop to the trip
   const handleAddStop = async (city) => {
     try {
       const nextOrder = stops.length + 1;
@@ -73,59 +78,52 @@ export default function ItineraryBuilder() {
         city_id: city.id,
         stop_order: nextOrder,
       });
-      toast.success(`${city.name} added to your route.`);
+      toast.success(`${city.name} added as new section.`);
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to add stop.');
+      toast.error(err.message || 'Failed to add section.');
     }
   };
 
-  // Remove a stop
   const handleRemoveStop = async (stopId) => {
-    if (!window.confirm('Remove this destination and its activities from your journey?')) {
-      return;
-    }
+    if (!window.confirm('Remove this section from your itinerary?')) return;
     try {
       await tripsService.deleteStop(tripId, stopId);
-      toast.success('Stop removed from route.');
+      toast.success('Section removed.');
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to remove stop.');
+      toast.error(err.message || 'Failed to remove section.');
     }
   };
 
-  // Reorder stops
   const handleReorderStops = async (orderedIds) => {
     try {
       await tripsService.reorderStops(tripId, orderedIds);
-      toast.success('Journey route reordered.');
+      toast.success('Sections reordered.');
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to reorder stops.');
+      toast.error(err.message || 'Failed to reorder sections.');
     }
   };
 
-  // Open activity discovery for a stop
   const handleOpenActivityDiscovery = (stop) => {
     setActiveStopForActivity(stop);
     setIsActivityDiscoveryOpen(true);
   };
 
-  // Add activity to a stop
   const handleAddActivity = async (stopId, activity) => {
     try {
       await tripsService.addActivity(tripId, stopId, {
         activity_id: activity.id,
         estimated_cost: activity.cost || undefined,
       });
-      toast.success(`"${activity.name}" added to itinerary.`);
+      toast.success(`"${activity.name}" added to section.`);
       loadItinerary();
     } catch (err) {
       toast.error(err.message || 'Failed to add activity.');
     }
   };
 
-  // Remove activity from a stop
   const handleRemoveActivity = async (stopId, activityId) => {
     try {
       await tripsService.deleteActivity(tripId, stopId, activityId);
@@ -136,14 +134,12 @@ export default function ItineraryBuilder() {
     }
   };
 
-  // Share Management
   const handleOpenShare = async () => {
     setIsShareModalOpen(true);
     try {
       const res = await shareService.get(tripId);
       setShareData(res.data?.share || null);
     } catch {
-      // If no share exists, we can create one
       try {
         const createRes = await shareService.create(tripId);
         setShareData(createRes.data?.share || null);
@@ -180,120 +176,208 @@ export default function ItineraryBuilder() {
 
   return (
     <div className="page page-wide space-y-8">
-      {/* Editorial Trip Top Navigation & Controls */}
-      <div className="border-b border-warm-gray-lighter pb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="travel-stamp text-terracotta bg-terracotta-muted">
-                JOURNEY CANVAS
-              </span>
-              <span className="coordinates text-[10px]">
-                {summary?.number_of_cities || 0} DESTINATIONS • {summary?.total_days || 'FLEXIBLE'} DAYS
-              </span>
-            </div>
-            <h1 className="text-display text-3xl md:text-5xl text-ink">{trip.name}</h1>
-            {trip.description && (
-              <p className="text-sm text-ink-muted mt-1 font-light max-w-2xl">{trip.description}</p>
-            )}
-          </div>
-
-          {/* Quick Tab & Share Actions */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to={`/trips/${trip.id}/timeline`}
-              className="btn btn-secondary btn-sm text-xs no-underline"
-            >
-              <Clock size={14} /> Timeline View
-            </Link>
-            <Link
-              to={`/trips/${trip.id}/budget`}
-              className="btn btn-secondary btn-sm text-xs no-underline"
-            >
-              <PieChart size={14} /> Budget Journal
-            </Link>
-            <button
-              onClick={handleOpenShare}
-              className="btn btn-terracotta btn-sm text-xs"
-            >
-              <Share2 size={14} /> Share Story
-            </button>
+      {/* ── Top Bar / Header ──────────────────────────────────────── */}
+      <div className="surface p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span className="text-label text-[10px] block mb-1">BUILD ITENARY SCREEN (SCREEN 5)</span>
+          <h1 className="font-display text-3xl md:text-4xl text-ink leading-tight">{trip.name}</h1>
+          <div className="flex items-center gap-4 text-xs text-ink-muted mt-2 font-mono">
+            <span className="flex items-center gap-1">
+              <Calendar size={13} className="text-terracotta" />
+              {formatDateRange(trip.start_date, trip.end_date) || 'Flexible dates'}
+            </span>
+            <span className="flex items-center gap-1">
+              <DollarSign size={13} className="text-olive" />
+              Budget: {formatCurrency(trip.total_budget || 0, trip.currency)}
+            </span>
           </div>
         </div>
 
-        {/* Trip Meta Overview Bar */}
-        <div className="flex flex-wrap items-center gap-6 mt-6 pt-4 border-t border-warm-gray-lighter text-xs text-ink-muted">
-          <div className="flex items-center gap-1.5 font-light">
-            <Calendar size={13} className="text-terracotta" />
-            <span>{formatDateRange(trip.start_date, trip.end_date) || 'Flexible dates'}</span>
+        {/* View mode toggle & quick actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center p-1 bg-paper-warm border border-warm-gray-lighter rounded-sm text-xs font-mono">
+            <button
+              onClick={() => setViewMode('sections')}
+              className={`px-3 py-1.5 rounded-xs font-bold transition-all ${
+                viewMode === 'sections' ? 'bg-ink text-paper shadow-xs' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              SECTIONS (SCREEN 5)
+            </button>
+            <button
+              onClick={() => setViewMode('canvas')}
+              className={`px-3 py-1.5 rounded-xs font-bold transition-all ${
+                viewMode === 'canvas' ? 'bg-ink text-paper shadow-xs' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              JOURNEY CANVAS
+            </button>
           </div>
-          <div className="flex items-center gap-1.5 font-mono">
-            <DollarSign size={13} className="text-olive" />
-            <span>
-              Target Budget: {trip.total_budget ? formatCurrency(trip.total_budget, trip.currency) : 'Unset'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin size={13} className="text-ink-subtle" />
-            <span>{stops.length} Planned Stop{stops.length === 1 ? '' : 's'}</span>
-          </div>
+
+          <Link
+            to={`/trips/${trip.id}/timeline`}
+            className="btn btn-secondary btn-sm text-xs no-underline"
+          >
+            <Clock size={14} /> Timeline View (Screen 9)
+          </Link>
+          <Link
+            to={`/trips/${trip.id}/budget`}
+            className="btn btn-secondary btn-sm text-xs no-underline"
+          >
+            <PieChart size={14} /> Budget Journal
+          </Link>
+          <button
+            onClick={handleOpenShare}
+            className="btn btn-terracotta btn-sm text-xs"
+          >
+            <Share2 size={14} /> Share Story
+          </button>
         </div>
       </div>
 
-      {/* Main Canvas View: The Signature Journey Route */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
-          <JourneyRoute
-            stops={stops}
-            trip={trip}
-            onOpenCityDiscovery={() => setIsCityDiscoveryOpen(true)}
-            onOpenActivityDiscovery={handleOpenActivityDiscovery}
-            onRemoveStop={handleRemoveStop}
-            onReorderStops={handleReorderStops}
-            onRemoveActivity={handleRemoveActivity}
-          />
-        </div>
+      {/* ── Screen 5: Multiple Sections List View ─────────────────── */}
+      {viewMode === 'sections' ? (
+        <div className="space-y-6 max-w-4xl mx-auto">
+          {stops.length === 0 ? (
+            <div className="surface p-12 text-center border-dashed border-2 border-warm-gray-lighter space-y-4">
+              <h3 className="font-display text-2xl text-ink">No Sections Added Yet</h3>
+              <p className="text-xs text-ink-muted max-w-md mx-auto font-light">
+                Click "+ Add another Section" below to create travel sections, hotels, or activity blocks.
+              </p>
+              <button
+                onClick={() => setIsCityDiscoveryOpen(true)}
+                className="btn btn-terracotta"
+              >
+                <Plus size={16} /> + Add another Section
+              </button>
+            </div>
+          ) : (
+            stops.map((stop, index) => {
+              const activities = stop.activities || [];
+              const stopBudget = activities.reduce((acc, a) => acc + parseFloat(a.estimated_cost || a.activity?.cost || 0), 0);
 
-        {/* Canvas Sidebar: Quick Inspector & Actions */}
-        <div className="space-y-6">
-          <div className="surface p-5 space-y-4">
-            <h3 className="font-display text-lg text-ink">Journey Summary</h3>
+              return (
+                <div key={stop.id} className="surface p-6 space-y-4 shadow-sm border-2 hover:border-ink transition-colors">
+                  <div className="flex items-center justify-between border-b border-warm-gray-lighter pb-3">
+                    <h3 className="font-display text-2xl text-ink">
+                      Section {index + 1}: {stop.city?.name || `Destination ${index + 1}`}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenActivityDiscovery(stop)}
+                        className="btn btn-secondary btn-sm text-xs"
+                      >
+                        <Plus size={13} /> Add Activity
+                      </button>
+                      <button
+                        onClick={() => handleRemoveStop(stop.id)}
+                        className="btn-icon !w-7 !h-7 text-ink-subtle hover:text-danger"
+                        title="Delete Section"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-ink-muted font-light leading-relaxed">
+                    {stop.city?.description ||
+                      'All the necessary information about this section. This can be anything like travel section, hotel or any other activity.'}
+                  </p>
+
+                  {/* Date Range & Budget of this section */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div className="p-3 bg-paper-warm rounded-sm border border-warm-gray-lighter">
+                      <span className="text-label text-[9px] block text-ink-subtle">DATE RANGE</span>
+                      <span className="font-mono text-xs font-semibold text-ink">
+                        {formatDateRange(stop.start_date, stop.end_date) || 'Date Range: xxx to yyy'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-paper-warm rounded-sm border border-warm-gray-lighter">
+                      <span className="text-label text-[9px] block text-ink-subtle">BUDGET OF THIS SECTION</span>
+                      <span className="font-mono text-xs font-semibold text-ink">
+                        {formatCurrency(stopBudget, trip.currency)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Activities inside this section */}
+                  {activities.length > 0 && (
+                    <div className="pt-3 border-t border-warm-gray-lighter space-y-2">
+                      <span className="text-label text-[10px]">SECTION ACTIVITIES & EXPERIENCES</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {activities.map((act) => (
+                          <div key={act.id} className="p-2.5 bg-white border border-warm-gray-lighter rounded-sm flex items-center justify-between text-xs">
+                            <span className="font-medium text-ink truncate mr-2">{act.activity?.name}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-mono font-bold">
+                                {formatCurrency(act.estimated_cost || act.activity?.cost || 0, trip.currency)}
+                              </span>
+                              <button
+                                onClick={() => handleRemoveActivity(stop.id, act.id)}
+                                className="text-ink-subtle hover:text-danger"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+
+          {/* + Add another Section CTA Button as required by wireframe Screen 5 */}
+          <div className="text-center pt-4">
+            <button
+              onClick={() => setIsCityDiscoveryOpen(true)}
+              className="btn btn-terracotta !px-8 !py-3.5 shadow-sm text-sm"
+            >
+              <Plus size={18} /> + Add another Section
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Journey Canvas Route Visualizer */
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3">
+            <JourneyRoute
+              stops={stops}
+              trip={trip}
+              onOpenCityDiscovery={() => setIsCityDiscoveryOpen(true)}
+              onOpenActivityDiscovery={handleOpenActivityDiscovery}
+              onRemoveStop={handleRemoveStop}
+              onReorderStops={handleReorderStops}
+              onRemoveActivity={handleRemoveActivity}
+            />
+          </div>
+
+          <div className="surface p-5 space-y-4 h-fit">
+            <h3 className="font-display text-lg text-ink">Itinerary Metrics</h3>
             <div className="space-y-2 text-xs font-mono">
               <div className="flex justify-between py-1 border-b border-warm-gray-lighter">
-                <span className="text-ink-subtle">Total Destinations</span>
-                <span className="font-bold text-ink">{summary?.number_of_cities || stops.length}</span>
+                <span className="text-ink-subtle">Sections Count</span>
+                <span className="font-bold text-ink">{stops.length}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-warm-gray-lighter">
-                <span className="text-ink-subtle">Total Days</span>
-                <span className="font-bold text-ink">{summary?.total_days || '—'}</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-warm-gray-lighter">
-                <span className="text-ink-subtle">Currency</span>
-                <span className="font-bold text-ink">{trip.currency}</span>
+                <span className="text-ink-subtle">Total Budget</span>
+                <span className="font-bold text-ink">{formatCurrency(trip.total_budget || 0, trip.currency)}</span>
               </div>
             </div>
-
             <button
               onClick={() => setIsCityDiscoveryOpen(true)}
               className="btn btn-terracotta w-full justify-center text-xs !py-2.5"
             >
-              <Plus size={14} /> Add Next Destination
+              <Plus size={14} /> + Add another Section
             </button>
           </div>
-
-          {/* Tips Box */}
-          <div className="p-4 bg-paper-warm rounded-sm border border-warm-gray-lighter text-xs text-ink-muted space-y-2 font-light">
-            <p className="font-semibold text-ink uppercase tracking-wider text-[10px]">
-              CANVAS INTERACTION TIP
-            </p>
-            <p>
-              Use the arrow buttons next to any stop to dynamically reorder your journey route. Add activities to see them settle into each destination.
-            </p>
-          </div>
         </div>
-      </div>
+      )}
 
-      {/* City Discovery Drawer */}
+      {/* Discovery Drawers */}
       <CityDiscovery
         isOpen={isCityDiscoveryOpen}
         onClose={() => setIsCityDiscoveryOpen(false)}
@@ -301,7 +385,6 @@ export default function ItineraryBuilder() {
         existingCityIds={stops.map((s) => s.city_id)}
       />
 
-      {/* Activity Discovery Drawer */}
       <ActivityDiscovery
         isOpen={isActivityDiscoveryOpen}
         onClose={() => setIsActivityDiscoveryOpen(false)}
@@ -320,10 +403,9 @@ export default function ItineraryBuilder() {
       >
         <div className="space-y-4">
           <p className="text-xs text-ink-muted font-light">
-            Anyone with this read-only link can view your journey in an editorial digital magazine format.
+            Share this itinerary in an editorial digital magazine format.
           </p>
-
-          {shareData?.public_token ? (
+          {shareData?.public_token && (
             <div className="space-y-3">
               <div className="p-3 bg-paper-warm border border-warm-gray-lighter rounded-sm flex items-center justify-between gap-2">
                 <span className="font-mono text-xs text-ink truncate">
@@ -336,26 +418,6 @@ export default function ItineraryBuilder() {
                   {copied ? <Check size={14} className="text-olive" /> : <Copy size={14} />}
                 </button>
               </div>
-
-              <div className="flex justify-between items-center pt-2">
-                <a
-                  href={`/trip/${shareData.public_token}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-terracotta font-semibold hover:underline flex items-center gap-1"
-                >
-                  Preview Public Magazine View <ExternalLink size={12} />
-                </a>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <button
-                onClick={handleOpenShare}
-                className="btn btn-terracotta btn-sm"
-              >
-                Generate Shareable Link
-              </button>
             </div>
           )}
         </div>

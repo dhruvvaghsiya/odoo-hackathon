@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import App from './App';
-import './styles/index.css';
+import './index.css';
 
 // Mount application root
 

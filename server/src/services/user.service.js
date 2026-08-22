@@ -8,7 +8,7 @@ const db = require('../config/db');
  * NEVER include password_hash.
  */
 const SAFE_USER_COLUMNS =
-  'id, name, email, profile_photo, language, role, created_at, updated_at';
+  'id, name, email, profile_photo, phone, city, country, additional_info, language, role, created_at, updated_at';
 
 /**
  * Find a user by email.
@@ -100,7 +100,7 @@ const login = async ({ email, password }) => {
  * @returns {Promise<object>} Updated user (safe)
  */
 const updateProfile = async (userId, fields) => {
-  const allowed = ['name', 'email', 'profile_photo', 'language'];
+  const allowed = ['name', 'email', 'profile_photo', 'phone', 'city', 'country', 'additional_info', 'language'];
   const setClauses = [];
   const values = [];
   let paramIndex = 1;

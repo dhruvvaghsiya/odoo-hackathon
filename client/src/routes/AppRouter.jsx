@@ -16,7 +16,7 @@ import PublicTrip from '../pages/PublicTrip';
 import Profile from '../pages/Profile';
 import Discover from '../pages/Discover';
 import Admin from '../pages/Admin';
-
+import Community from '../pages/Community';
 import ForgotPassword from '../pages/ForgotPassword';
 
 export default function AppRouter() {
@@ -61,6 +61,7 @@ export default function AppRouter() {
         <Route path="trips/:id/timeline" element={<Timeline />} />
         <Route path="trips/:id/budget" element={<Budget />} />
         <Route path="discover" element={<Discover />} />
+        <Route path="community" element={<Community />} />
         <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<Admin />} />
       </Route>

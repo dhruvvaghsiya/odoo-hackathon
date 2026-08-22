@@ -4,11 +4,11 @@ import Navigation from './Navigation';
 
 export default function AppShell() {
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-paper flex flex-col">
       <Header />
-      <div className="flex">
+      <div className="flex flex-1">
         <Navigation />
-        <main className="flex-1 min-h-[calc(100vh-3.5rem)]">
+        <main className="flex-1 min-w-0 pb-16 md:pb-0">
           <Outlet />
         </main>
       </div>

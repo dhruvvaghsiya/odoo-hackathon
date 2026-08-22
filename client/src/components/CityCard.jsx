@@ -4,6 +4,8 @@ import { MapPin, Plus, DollarSign, Star } from 'lucide-react';
 export default function CityCard({ city, onAdd, isAdded = false, compact = false }) {
   const imageUrl = getCityImage(city);
 
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
+
   if (compact) {
     return (
       <div className="surface p-3 flex items-center justify-between gap-3 group hover:border-ink transition-colors">
@@ -11,6 +13,7 @@ export default function CityCard({ city, onAdd, isAdded = false, compact = false
           <img
             src={imageUrl}
             alt={city.name}
+            onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
             className="w-12 h-12 rounded object-cover shrink-0"
             loading="lazy"
           />
@@ -41,6 +44,7 @@ export default function CityCard({ city, onAdd, isAdded = false, compact = false
         <img
           src={imageUrl}
           alt={city.name}
+          onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />

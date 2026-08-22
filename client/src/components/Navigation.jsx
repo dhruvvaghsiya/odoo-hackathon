@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, Compass, Plus, Settings } from 'lucide-react';
+import { LayoutDashboard, Map, Compass, Users, Plus, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/trips', icon: Map, label: 'My Trips' },
   { to: '/discover', icon: Compass, label: 'Discover' },
+  { to: '/community', icon: Users, label: 'Community' },
 ];
 
 export default function Navigation() {

@@ -11,12 +11,15 @@ export default function TripCard({ trip, onDelete, onShare }) {
 
   const stopCities = trip.stops?.map((s) => s.city?.name).filter(Boolean) || [];
 
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';
+
   return (
     <div className="surface overflow-hidden group flex flex-col justify-between hover:shadow-md hover:border-ink transition-all duration-300">
       <div className="relative h-48 overflow-hidden bg-paper-warm">
         <img
           src={coverImage}
           alt={trip.name}
+          onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />

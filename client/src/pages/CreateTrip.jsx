@@ -1,29 +1,87 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { tripsService } from '../services/trips';
+import { citiesService } from '../services/cities';
+import { activitiesService } from '../services/activities';
 import { useToast } from '../context/ToastContext';
-import PageHeader from '../components/PageHeader';
-import { CURRENCIES } from '../utils/constants';
-import { MapPin, Calendar, DollarSign, ArrowRight } from 'lucide-react';
+import { getCityImage } from '../utils/constants';
+import { formatCurrency } from '../utils/formatCurrency';
+import {
+  MapPin,
+  Calendar,
+  DollarSign,
+  ArrowRight,
+  Sparkles,
+  Plus,
+  Compass,
+} from 'lucide-react';
 
 export default function CreateTrip() {
   const [searchParams] = useSearchParams();
   const initialDestination = searchParams.get('destination') || '';
 
-  const [name, setName] = useState(
-    initialDestination ? `Journey to ${initialDestination}` : 'European Summer'
-  );
-  const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [name, setName] = useState(initialDestination ? `Journey to ${initialDestination}` : 'Mediterranean Summer Odyssey');
+  const [startDate, setStartDate] = useState('2026-06-15');
+  const [endDate, setEndDate] = useState('2026-06-28');
+  const [selectedPlace, setSelectedPlace] = useState(initialDestination || 'Paris, France');
   const [totalBudget, setTotalBudget] = useState('3500');
   const [currency, setCurrency] = useState('USD');
-  const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Suggestions state (Screen 4)
+  const [suggestions, setSuggestions] = useState([]);
+  const [citiesList, setCitiesList] = useState([]);
+
   const navigate = useNavigate();
   const toast = useToast();
+
+  useEffect(() => {
+    loadSuggestions();
+  }, []);
+
+  const loadSuggestions = async () => {
+    try {
+      const [citiesRes, activitiesRes] = await Promise.all([
+        citiesService.popular({ limit: 6 }),
+        activitiesService.popular({ limit: 6 }),
+      ]);
+      setCitiesList(citiesRes.data?.cities || []);
+
+      // Combine suggestions
+      const places = (citiesRes.data?.cities || []).slice(0, 3).map((c) => ({
+        id: `city-${c.id}`,
+        title: c.name,
+        subtitle: c.country,
+        category: 'PLACE',
+        image: getCityImage(c),
+        cost: c.cost_index,
+      }));
+
+      const acts = (activitiesRes.data?.activities || []).slice(0, 3).map((a) => ({
+        id: `act-${a.id}`,
+        title: a.name,
+        subtitle: a.type,
+        category: 'ACTIVITY',
+        image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=80',
+        cost: a.cost,
+      }));
+
+      setSuggestions([...places, ...acts]);
+    } catch {
+      // Non-critical fallback
+    }
+  };
+
+  const handleSelectSuggestion = (sug) => {
+    if (sug.category === 'PLACE') {
+      setSelectedPlace(`${sug.title}, ${sug.subtitle}`);
+      setName(`Journey to ${sug.title}`);
+    } else {
+      setName(`Trip with ${sug.title}`);
+    }
+    toast.info(`Selected ${sug.title} for your journey.`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,25 +90,32 @@ export default function CreateTrip() {
       return;
     }
 
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      setError('Start date must be before or equal to end date.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
     try {
       const res = await tripsService.create({
         name: name.trim(),
-        description: description.trim() || undefined,
+        description: `Plan exploring ${selectedPlace || 'curated destinations'}`,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
         total_budget: totalBudget ? parseFloat(totalBudget) : undefined,
         currency,
-        is_public: isPublic,
+        is_public: true,
       });
 
       const newTrip = res.data?.trip;
+
+      // If user selected a city, try to add it as first stop
+      const matchedCity = citiesList.find((c) => selectedPlace.toLowerCase().includes(c.name.toLowerCase()));
+      if (matchedCity && newTrip?.id) {
+        try {
+          await tripsService.addStop(newTrip.id, {
+            city_id: matchedCity.id,
+            stop_order: 1,
+          });
+        } catch { /* ignore */ }
+      }
+
       toast.success(`Journey "${newTrip?.name || name}" initiated.`);
       navigate(`/trips/${newTrip?.id || ''}`);
     } catch (err) {
@@ -61,140 +126,161 @@ export default function CreateTrip() {
   };
 
   return (
-    <div className="page page-content max-w-3xl mx-auto space-y-8">
-      <PageHeader
-        stamp="INITIALIZATION"
-        coordinates="CREATE / PLOT NEW JOURNEY"
-        title="Design a New Expedition"
-        subtitle="Establish the foundational parameters for your Journey Canvas. You will plot multi-city stops and experiences in the next step."
-      />
+    <div className="page page-content max-w-4xl mx-auto space-y-10">
+      {/* ── Screen 4: Plan a new trip Form ─────────────────────────── */}
+      <div className="surface p-6 md:p-8 space-y-6 shadow-sm">
+        <div>
+          <span className="text-label text-[10px] block mb-1">CREATE A NEW TRIP (SCREEN 4)</span>
+          <h2 className="font-display text-3xl text-ink">Plan a new trip</h2>
+          <p className="text-xs text-ink-muted mt-1 font-light">
+            Set your travel dates, place, and budget parameters.
+          </p>
+        </div>
 
-      <div className="surface p-6 md:p-8">
         {error && (
-          <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm mb-6 animate-fade-in">
+          <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm animate-fade-in">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Trip Name */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="input-group">
-            <label className="input-label">Journey Title</label>
+            <label className="input-label">Trip Title / Journey Name</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Mediterranean Coast Odyssey"
-              className="input-field text-lg font-medium"
+              placeholder="e.g. Summer in Europe"
+              className="input-field font-medium"
             />
           </div>
 
-          {/* Description */}
-          <div className="input-group">
-            <label className="input-label">Travel Notes / Overview</label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="A brief summary of your travel ambitions, route inspiration, or style..."
-              className="input-field text-sm"
-            />
-          </div>
-
-          {/* Date Range */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Start Date */}
             <div className="input-group">
-              <label className="input-label">Departure Date</label>
+              <label className="input-label">Start Date:</label>
               <input
                 type="date"
+                required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="input-field text-sm"
               />
             </div>
+
+            {/* Select a Place */}
             <div className="input-group">
-              <label className="input-label">Return Date</label>
+              <label className="input-label">Select a Place :</label>
               <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                type="text"
+                required
+                value={selectedPlace}
+                onChange={(e) => setSelectedPlace(e.target.value)}
+                placeholder="e.g. Paris, France or Tokyo, Japan"
                 className="input-field text-sm"
               />
             </div>
           </div>
 
-          {/* Budget & Currency */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="input-group sm:col-span-2">
-              <label className="input-label">Target Budget</label>
-              <div className="relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* End Date */}
+            <div className="input-group">
+              <label className="input-label">End Date:</label>
+              <input
+                type="date"
+                required
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="input-field text-sm"
+              />
+            </div>
+
+            {/* Budget */}
+            <div className="input-group">
+              <label className="input-label">Estimated Budget:</label>
+              <div className="flex gap-2">
                 <input
                   type="number"
                   min="0"
-                  step="10"
                   value={totalBudget}
                   onChange={(e) => setTotalBudget(e.target.value)}
-                  placeholder="e.g. 5000"
-                  className="input-field font-mono"
+                  placeholder="3500"
+                  className="input-field font-mono flex-1"
                 />
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="input-field !w-24 font-mono text-xs"
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="INR">INR</option>
+                </select>
               </div>
             </div>
-            <div className="input-group">
-              <label className="input-label">Currency</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="input-field font-mono text-sm"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          {/* Public Toggle */}
-          <div className="p-4 bg-paper-warm rounded-sm flex items-center justify-between">
-            <div>
-              <span className="text-sm font-medium text-ink block">Public Itinerary</span>
-              <span className="text-xs text-ink-subtle">
-                Allow generating a read-only shareable digital magazine link for fellow explorers.
-              </span>
-            </div>
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="w-5 h-5 accent-terracotta cursor-pointer"
-            />
-          </div>
-
-          {/* Action */}
-          <div className="pt-4 border-t border-warm-gray-lighter flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="btn btn-ghost"
-            >
-              Cancel
-            </button>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-terracotta !py-3 !px-6"
+              className="btn btn-terracotta !py-3 !px-6 shadow-xs"
             >
-              {loading ? 'Initializing Canvas...' : (
+              {loading ? 'Initializing...' : (
                 <>
-                  Initialize Journey Canvas <ArrowRight size={16} />
+                  Create Journey Canvas <ArrowRight size={16} />
                 </>
               )}
             </button>
           </div>
         </form>
       </div>
+
+      {/* ── Screen 4: Suggestion for Places to Visit/Activities to perform ── */}
+      <section className="space-y-4">
+        <div className="border-b border-warm-gray-lighter pb-2">
+          <h3 className="font-display text-2xl text-ink">
+            Suggestion for Places to Visit/Activities to perform
+          </h3>
+          <p className="text-xs text-ink-muted font-light">
+            Click any suggestion below to quickly populate your trip itinerary.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {suggestions.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => handleSelectSuggestion(item)}
+              className="surface overflow-hidden group cursor-pointer hover:border-ink hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+            >
+              <div className="relative h-36 overflow-hidden bg-paper-warm">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
+                <span className="absolute top-2 left-2 text-[9px] font-mono uppercase tracking-wider bg-black/40 backdrop-blur-xs text-white px-2 py-0.5 rounded-xs">
+                  {item.category}
+                </span>
+                <h4 className="absolute bottom-2 left-3 right-3 text-white font-display text-lg leading-tight">
+                  {item.title}
+                </h4>
+              </div>
+
+              <div className="p-3 flex items-center justify-between">
+                <span className="text-xs text-ink-muted">{item.subtitle}</span>
+                <span className="text-xs text-terracotta font-semibold group-hover:underline">
+                  + Select
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -2,18 +2,35 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { MapPin, ArrowRight } from 'lucide-react';
+import { Camera, User, ArrowRight } from 'lucide-react';
 
 export default function Signup() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
   const [password, setPassword] = useState('');
+  const [additionalInfo, setAdditionalInfo] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const { signup } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,89 +42,98 @@ export default function Signup() {
     setLoading(true);
     setError(null);
     try {
-      await signup(name, email, password);
-      toast.success('Your explorer profile has been created.');
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim() || 'Explorer';
+      await signup({
+        name: fullName,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim(),
+        password,
+        phone: phoneNumber.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        additional_info: additionalInfo.trim(),
+        profile_photo: profilePhoto || undefined,
+      });
+
+      toast.success('Registration successful. Welcome to GlobeTrotter!');
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Failed to create account.');
+      setError(err.message || 'Failed to register account.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col md:flex-row">
-      {/* Left Column: Editorial Background */}
-      <div className="md:w-1/2 relative bg-ink text-paper p-8 md:p-16 flex flex-col justify-between overflow-hidden min-h-[380px] md:min-h-screen">
-        <div className="absolute inset-0 z-0 opacity-40">
-          <img
-            src="https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=1600&q=80"
-            alt="Travel background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/30" />
-        </div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="travel-stamp text-olive bg-white/10 backdrop-blur-xs border-olive">
-              REGISTER / PASSPORT
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin size={24} className="text-terracotta" strokeWidth={2.5} />
-            <span className="font-display text-2xl tracking-tight text-white">GlobeTrotter</span>
-          </div>
-        </div>
-
-        <div className="relative z-10 my-8 md:my-0">
-          <p className="text-label text-terracotta text-xs tracking-widest uppercase mb-3">
-            START YOUR ODYSSEY
-          </p>
-          <h1 className="text-display text-4xl md:text-6xl text-white font-normal leading-tight">
-            PLAN • DISCOVER • GO.
-          </h1>
-          <p className="text-warm-gray-light text-sm md:text-base font-light mt-4 max-w-md">
-            Join the modern community of explorers creating structured, shareable, and beautifully budget-conscious journey canvases.
-          </p>
-        </div>
-
-        <div className="relative z-10 flex items-center justify-between text-xs text-warm-gray-light font-mono border-t border-white/10 pt-4">
-          <span>THE JOURNEY CANVAS</span>
-          <span>AUTONOMOUS EXPLORATION</span>
-        </div>
-      </div>
-
-      {/* Right Column: Registration Form */}
-      <div className="md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-paper">
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <span className="text-label block mb-1">ONBOARDING</span>
-            <h2 className="font-display text-3xl md:text-4xl text-ink">Create Explorer Account</h2>
-            <p className="text-xs text-ink-muted mt-1 font-light">
-              Set up your identity to start building your first trip route.
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm mb-6 animate-fade-in">
-              {error}
+    <div className="min-h-screen bg-paper flex items-center justify-center p-6 md:p-12">
+      <div className="surface w-full max-w-2xl p-8 md:p-12 shadow-md space-y-6">
+        {/* Photo Avatar Circle as required by wireframe Screen 2 */}
+        <div className="flex flex-col items-center justify-center">
+          <label className="cursor-pointer group relative">
+            <div className="w-28 h-28 rounded-full border-2 border-dashed border-ink/40 bg-paper-warm overflow-hidden flex flex-col items-center justify-center text-ink-subtle group-hover:border-terracotta transition-colors shadow-xs">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="User Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <Camera size={32} className="text-ink-muted mb-1 group-hover:text-terracotta transition-colors" />
+                  <span className="text-[11px] font-mono uppercase tracking-wider">Photo</span>
+                </>
+              )}
             </div>
-          )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+          </label>
+          <span className="text-[10px] text-ink-subtle mt-1">Click to upload photo</span>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="text-center">
+          <span className="text-label text-[10px] block mb-1">REGISTRATION SCREEN (SCREEN 2)</span>
+          <h2 className="font-display text-3xl text-ink">Register Users</h2>
+          <p className="text-xs text-ink-muted mt-1 font-light">
+            Fill in your explorer details to initialize your passport.
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm animate-fade-in">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Row 1: First Name & Last Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="input-group">
-              <label className="input-label">Full Name</label>
+              <label className="input-label">First Name</label>
               <input
                 type="text"
                 required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Eleanor Vance"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First Name"
                 className="input-field"
               />
             </div>
+            <div className="input-group">
+              <label className="input-label">Last Name</label>
+              <input
+                type="text"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last Name"
+                className="input-field"
+              />
+            </div>
+          </div>
 
+          {/* Row 2: Email Address & Phone Number */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="input-group">
               <label className="input-label">Email Address</label>
               <input
@@ -115,42 +141,90 @@ export default function Signup() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="eleanor@example.com"
+                placeholder="Email Address"
                 className="input-field"
               />
             </div>
-
             <div className="input-group">
-              <label className="input-label">Password</label>
+              <label className="input-label">Phone Number</label>
               <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="input-field font-mono"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Phone Number"
+                className="input-field"
               />
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-terracotta w-full justify-center !py-3.5 mt-2"
-            >
-              {loading ? 'Creating Passport...' : (
-                <>
-                  Register & Start Planning <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-8 text-center text-xs text-ink-muted font-light">
-            Already registered?{' '}
-            <Link to="/login" className="text-terracotta font-semibold hover:underline">
-              Sign in here
-            </Link>
           </div>
+
+          {/* Row 3: City & Country */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="input-group">
+              <label className="input-label">City</label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+                className="input-field"
+              />
+            </div>
+            <div className="input-group">
+              <label className="input-label">Country</label>
+              <input
+                type="text"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Country"
+                className="input-field"
+              />
+            </div>
+          </div>
+
+          {/* Row 4: Password */}
+          <div className="input-group">
+            <label className="input-label">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              className="input-field font-mono"
+            />
+          </div>
+
+          {/* Row 5: Additional Information */}
+          <div className="input-group">
+            <label className="input-label">Additional Information ....</label>
+            <textarea
+              rows={3}
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              placeholder="Additional Information, travel interests, dietary preferences..."
+              className="input-field text-sm"
+            />
+          </div>
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-terracotta w-full justify-center !py-3.5 mt-2 shadow-xs"
+          >
+            {loading ? 'Registering...' : (
+              <>
+                Register Users <ArrowRight size={16} />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="pt-2 text-center text-xs text-ink-muted font-light">
+          Already registered?{' '}
+          <Link to="/login" className="text-terracotta font-semibold hover:underline">
+            Login here
+          </Link>
         </div>
       </div>
     </div>
