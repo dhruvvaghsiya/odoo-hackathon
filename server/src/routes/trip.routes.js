@@ -7,6 +7,7 @@ const {
   deleteTrip,
 } = require('../controllers/trip.controller');
 const authenticate = require('../middleware/auth.middleware');
+const stopRoutes = require('./stop.routes');
 
 const router = Router();
 
@@ -19,4 +20,8 @@ router.get('/:id', getTripById);
 router.patch('/:id', updateTrip);
 router.delete('/:id', deleteTrip);
 
+// ── Nested stop routes ─────────────────────────────────
+router.use('/:tripId/stops', stopRoutes);
+
 module.exports = router;
+
