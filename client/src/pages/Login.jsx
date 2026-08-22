@@ -35,8 +35,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-paper flex items-center justify-center p-6 md:p-12">
-      <div className="surface w-full max-w-md p-8 md:p-10 text-center shadow-md space-y-6">
+    <div className="min-h-screen relative flex items-center justify-center p-6 md:p-12 overflow-hidden bg-ink">
+      {/* Scenic Background Image */}
+      <img
+        src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=85"
+        alt="Travel Destination"
+        className="absolute inset-0 w-full h-full object-cover opacity-35 filter blur-[1px]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/40 backdrop-blur-[2px]" />
+
+      <div className="relative z-10 surface w-full max-w-md p-8 md:p-10 text-center shadow-lg space-y-6 bg-paper/98 border border-warm-gray-light">
         {/* Photo Avatar Circle as required by wireframe Screen 1 */}
         <div className="flex justify-center">
           <div className="w-24 h-24 rounded-full border-2 border-dashed border-ink/40 bg-paper-warm flex flex-col items-center justify-center text-ink-subtle shadow-xs">

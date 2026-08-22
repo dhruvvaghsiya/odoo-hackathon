@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { tripsService } from '../services/trips';
 import LoadingState from '../components/LoadingState';
-import { formatDateShort, getDaysInMonth, startOfMonth, getDayOfWeek } from '../utils/formatDate';
+import { formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import {
   Calendar as CalendarIcon,

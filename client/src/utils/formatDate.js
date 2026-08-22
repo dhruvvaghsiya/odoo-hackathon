@@ -75,3 +75,15 @@ export function toInputDate(dateStr) {
   const d = new Date(dateStr);
   return d.toISOString().slice(0, 10);
 }
+
+export function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+export function startOfMonth(year, month) {
+  return new Date(year, month, 1);
+}
+
+export function getDayOfWeek(year, month, day = 1) {
+  return new Date(year, month, day).getDay();
+}
