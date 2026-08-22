@@ -6,6 +6,10 @@ const {
   updateTrip,
   deleteTrip,
 } = require('../controllers/trip.controller');
+const {
+  reorderStops,
+  getItinerary,
+} = require('../controllers/itinerary.controller');
 const authenticate = require('../middleware/auth.middleware');
 const stopRoutes = require('./stop.routes');
 
@@ -20,8 +24,13 @@ router.get('/:id', getTripById);
 router.patch('/:id', updateTrip);
 router.delete('/:id', deleteTrip);
 
-// ── Nested stop routes ─────────────────────────────────
+// ── Itinerary endpoints ────────────────────────────────
+router.get('/:tripId/itinerary', getItinerary);
+router.patch('/:tripId/stops/reorder', reorderStops);
+
+// ── Nested stop routes (must come after /reorder) ──────
 router.use('/:tripId/stops', stopRoutes);
 
 module.exports = router;
+
 
