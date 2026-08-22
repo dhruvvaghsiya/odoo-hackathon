@@ -8,11 +8,12 @@ const router = Router();
 
 // ── Public routes (rate-limited + validated) ───────
 router.post('/signup', authLimiter, signupRules, signup);
-router.post('/login',  authLimiter, loginRules,  login);
+router.post('/login', authLimiter, loginRules, login);
 
 // Protected routes
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);
 
 module.exports = router;
+
 
