@@ -47,9 +47,111 @@ The server starts on **http://localhost:5000** by default.
 
 ## API Endpoints
 
-| Method | Path           | Description          |
-| ------ | -------------- | -------------------- |
-| GET    | `/api/health`  | Server & DB health   |
+### Health
+
+| Method | Path           | Auth | Description          |
+| ------ | -------------- | ---- | -------------------- |
+| GET    | `/api/health`  | No   | Server & DB health   |
+
+### Authentication
+
+| Method | Path             | Auth | Description              |
+| ------ | ---------------- | ---- | ------------------------ |
+| POST   | `/api/auth/signup` | No   | Register a new account |
+| POST   | `/api/auth/login`  | No   | Log in, receive JWT    |
+| POST   | `/api/auth/logout` | Yes  | Logout (client-side)   |
+| GET    | `/api/auth/me`     | Yes  | Get authenticated user |
+
+### Users
+
+| Method | Path             | Auth | Description              |
+| ------ | ---------------- | ---- | ------------------------ |
+| GET    | `/api/users/me`  | Yes  | Get own profile          |
+| PATCH  | `/api/users/me`  | Yes  | Update own profile       |
+| DELETE | `/api/users/me`  | Yes  | Delete own account       |
+
+### Cities (Public)
+
+| Method | Path                              | Auth | Description                   |
+| ------ | --------------------------------- | ---- | ----------------------------- |
+| GET    | `/api/cities`                     | No   | List cities (filter/sort/page)|
+| GET    | `/api/cities/search?q=`           | No   | Search cities by name         |
+| GET    | `/api/cities/popular`             | No   | Top cities by popularity      |
+| GET    | `/api/cities/:id`                 | No   | Single city by UUID           |
+| GET    | `/api/cities/:cityId/activities`  | No   | List activities for a city    |
+
+### Trips
+
+| Method | Path                                    | Auth | Description                     |
+| ------ | --------------------------------------- | ---- | ------------------------------- |
+| POST   | `/api/trips`                            | Yes  | Create a trip                   |
+| GET    | `/api/trips`                            | Yes  | List own trips                  |
+| GET    | `/api/trips/:id`                        | Yes  | Get trip (own or public)        |
+| PATCH  | `/api/trips/:id`                        | Yes  | Update a trip                   |
+| DELETE | `/api/trips/:id`                        | Yes  | Delete a trip                   |
+| GET    | `/api/trips/:tripId/itinerary`          | Yes  | Full itinerary view             |
+| PATCH  | `/api/trips/:tripId/stops/reorder`      | Yes  | Reorder trip stops              |
+| GET    | `/api/trips/:tripId/timeline`           | Yes  | Scheduling timeline             |
+| PATCH  | `/api/trips/:tripId/activities/reorder` | Yes  | Reorder activities              |
+
+### Trip Stops
+
+| Method | Path                                             | Auth | Description             |
+| ------ | ------------------------------------------------ | ---- | ----------------------- |
+| POST   | `/api/trips/:tripId/stops`                       | Yes  | Add a stop              |
+| GET    | `/api/trips/:tripId/stops`                       | Yes  | List stops              |
+| PATCH  | `/api/trips/:tripId/stops/:stopId`               | Yes  | Update a stop           |
+| DELETE | `/api/trips/:tripId/stops/:stopId`               | Yes  | Delete a stop           |
+
+### Trip Activities
+
+| Method | Path                                                             | Auth | Description                |
+| ------ | ---------------------------------------------------------------- | ---- | -------------------------- |
+| POST   | `/api/trips/:tripId/stops/:stopId/activities`                    | Yes  | Add activity to stop       |
+| GET    | `/api/trips/:tripId/stops/:stopId/activities`                    | Yes  | List stop activities       |
+| PATCH  | `/api/trips/:tripId/stops/:stopId/activities/:id`                | Yes  | Update a trip activity     |
+| DELETE | `/api/trips/:tripId/stops/:stopId/activities/:id`                | Yes  | Delete a trip activity     |
+
+### Activities (Catalog)
+
+| Method | Path                  | Auth | Description                  |
+| ------ | --------------------- | ---- | ---------------------------- |
+| GET    | `/api/activities`     | No   | List activities (filter/page)|
+
+### Expenses
+
+| Method | Path                                       | Auth | Description             |
+| ------ | ------------------------------------------ | ---- | ----------------------- |
+| POST   | `/api/trips/:tripId/expenses`              | Yes  | Add an expense          |
+| GET    | `/api/trips/:tripId/expenses`              | Yes  | List expenses           |
+| PATCH  | `/api/trips/:tripId/expenses/:expenseId`   | Yes  | Update an expense       |
+| DELETE | `/api/trips/:tripId/expenses/:expenseId`   | Yes  | Delete an expense       |
+
+### Budget
+
+| Method | Path                                    | Auth | Description                      |
+| ------ | --------------------------------------- | ---- | -------------------------------- |
+| GET    | `/api/trips/:tripId/budget`             | Yes  | Basic budget summary             |
+| GET    | `/api/trips/:tripId/budget/analysis`    | Yes  | Full budget analysis & insights  |
+
+## Database Schema
+
+```
+users  ──────┐
+             │ 1:N
+             ▼
+trips  ──────┤
+             │ 1:N
+             ▼
+trip_stops ──┤──── N:1 ──── cities
+             │ 1:N                │ 1:N
+             ▼                    ▼
+trip_activities ── N:1 ─── activities
+             
+expenses ──── N:1 ──── trips
+```
+
+**Tables:** `users`, `trips`, `cities`, `trip_stops`, `activities`, `trip_activities`, `expenses`
 
 ## Project Structure
 
@@ -58,15 +160,15 @@ server/
 ├── src/
 │   ├── config/          # Environment config & DB pool
 │   ├── controllers/     # Route handlers
-│   ├── middleware/       # Error handler, 404, auth (future)
+│   ├── middleware/       # Auth, error handler, rate limiter, validation
 │   ├── routes/          # Express routers
-│   ├── services/        # Business logic (future)
-│   ├── utils/           # Helpers (API response format)
+│   ├── services/        # Business logic & database queries
+│   ├── utils/           # Helpers (API response, JWT, password hashing)
 │   ├── app.js           # Express app setup
 │   └── server.js        # Entry point
 ├── database/
-│   ├── schema.sql         # Table definitions
-│   └── seed.sql           # Dev seed data
+│   ├── schema.sql       # Table definitions
+│   └── seed.sql         # Dev seed data
 ├── .env.example
 ├── package.json
 └── README.md
