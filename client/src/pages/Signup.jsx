@@ -79,76 +79,78 @@ export default function Signup() {
       </div>
 
       {/* Right Column: Registration Form */}
-      <div className="md:w-1/2 p-8 md:p-16 flex flex-col justify-center max-w-lg mx-auto w-full">
-        <div className="mb-8">
-          <span className="text-label block mb-1">ONBOARDING</span>
-          <h2 className="font-display text-3xl md:text-4xl text-ink">Create Explorer Account</h2>
-          <p className="text-xs text-ink-muted mt-1 font-light">
-            Set up your identity to start building your first trip route.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm mb-6 animate-fade-in">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="input-group">
-            <label className="input-label">Full Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Eleanor Vance"
-              className="input-field"
-            />
+      <div className="md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-paper">
+        <div className="w-full max-w-md">
+          <div className="mb-8">
+            <span className="text-label block mb-1">ONBOARDING</span>
+            <h2 className="font-display text-3xl md:text-4xl text-ink">Create Explorer Account</h2>
+            <p className="text-xs text-ink-muted mt-1 font-light">
+              Set up your identity to start building your first trip route.
+            </p>
           </div>
 
-          <div className="input-group">
-            <label className="input-label">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="eleanor@example.com"
-              className="input-field"
-            />
+          {error && (
+            <div className="bg-danger-muted text-danger text-xs p-3 rounded-sm mb-6 animate-fade-in">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="input-group">
+              <label className="input-label">Full Name</label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Eleanor Vance"
+                className="input-field"
+              />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Email Address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="eleanor@example.com"
+                className="input-field"
+              />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="input-field font-mono"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-terracotta w-full justify-center !py-3.5 mt-2"
+            >
+              {loading ? 'Creating Passport...' : (
+                <>
+                  Register & Start Planning <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center text-xs text-ink-muted font-light">
+            Already registered?{' '}
+            <Link to="/login" className="text-terracotta font-semibold hover:underline">
+              Sign in here
+            </Link>
           </div>
-
-          <div className="input-group">
-            <label className="input-label">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-              className="input-field font-mono"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-terracotta w-full justify-center !py-3.5 mt-2"
-          >
-            {loading ? 'Creating Passport...' : (
-              <>
-                Register & Start Planning <ArrowRight size={16} />
-              </>
-            )}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center text-xs text-ink-muted font-light">
-          Already registered?{' '}
-          <Link to="/login" className="text-terracotta font-semibold hover:underline">
-            Sign in here
-          </Link>
         </div>
       </div>
     </div>

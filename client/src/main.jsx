@@ -6,6 +6,8 @@ import { ToastProvider } from './context/ToastContext';
 import App from './App';
 import './styles/index.css';
 
+// Mount application root
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>

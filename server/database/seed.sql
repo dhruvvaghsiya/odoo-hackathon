@@ -3,6 +3,8 @@
 -- Run:  psql -U postgres -d globetrotter -f database/seed.sql
 -- ============================================================
 
+SET client_encoding = 'UTF8';
+
 -- ── Users ──────────────────────────────────────────
 -- Passwords below are bcrypt hashes of "password123"
 INSERT INTO users (name, email, password_hash, language, role) VALUES
@@ -598,13 +600,13 @@ INSERT INTO trip_shares (trip_id, public_token, is_active) VALUES
   -- Bob: Southeast Asia Explorer (is_public = true)
   (
     (SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
-    '11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff11',
+    '11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff',
     true
   ),
   -- Charlie: Middle East & Turkey (is_public = true)
   (
     (SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
-    'deadbeefcafebabe1234567890abcdefdeadbeefcafebabe1234567890abcdef12',
+    'deadbeefcafebabe1234567890abcdefdeadbeefcafebabe1234567890abcdef',
     true
   )
 ON CONFLICT DO NOTHING;

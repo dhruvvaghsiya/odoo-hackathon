@@ -3,6 +3,8 @@
 -- Run:  psql -U postgres -d globetrotter -f database/schema.sql
 -- ============================================================
 
+SET client_encoding = 'UTF8';
+
 -- Enable UUID generation
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

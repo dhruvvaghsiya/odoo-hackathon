@@ -4,6 +4,8 @@
    ═══════════════════════════════════════════════════════════ */
 
 @import "tailwindcss";
+@source "../**/*.{js,jsx,html}";
+@source "../../index.html";
 
 /* ── THEME TOKENS ──────────────────────────────────────────── */
 
@@ -45,17 +47,6 @@
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* ── Spacing Scale ─────────────────────────────────────── */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  --spacing-3xl: 4rem;
-  --spacing-4xl: 6rem;
-  --spacing-5xl: 8rem;
-
   /* ── Border Radius (restrained, editorial) ─────────────── */
   --radius-sm: 2px;
   --radius-md: 4px;
@@ -74,6 +65,52 @@
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
+}
+
+:root {
+  --color-paper: #FAF7F2;
+  --color-paper-warm: #F5F0E8;
+  --color-paper-dark: #EDE8DD;
+
+  --color-ink: #1B2432;
+  --color-ink-light: #2D3A4A;
+  --color-ink-muted: #4A5568;
+  --color-ink-subtle: #718096;
+
+  --color-terracotta: #C4654A;
+  --color-terracotta-light: #D4806A;
+  --color-terracotta-dark: #A8503A;
+  --color-terracotta-muted: #C4654A22;
+
+  --color-olive: #5B7553;
+  --color-olive-light: #7A9470;
+  --color-olive-dark: #4A6043;
+  --color-olive-muted: #5B755322;
+
+  --color-warm-gray: #A0998E;
+  --color-warm-gray-light: #C4BDB0;
+  --color-warm-gray-lighter: #DBD5CA;
+  --color-warm-gray-dark: #7A746A;
+
+  --color-danger: #B84233;
+  --color-danger-muted: #B8423322;
+  --color-warning: #C4954A;
+  --color-warning-muted: #C4954A22;
+  --color-success: #5B7553;
+  --color-success-muted: #5B755322;
+
+  --font-display: 'DM Serif Display', 'Georgia', serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+
+  --shadow-sm: 0 1px 2px rgba(27, 36, 50, 0.05);
+  --shadow-md: 0 2px 8px rgba(27, 36, 50, 0.08);
+  --shadow-lg: 0 4px 16px rgba(27, 36, 50, 0.1);
 }
 
 /* ── BASE STYLES ───────────────────────────────────────────── */
