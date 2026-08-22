@@ -6,6 +6,7 @@ import { usersService } from '../services/users';
 import { tripsService } from '../services/trips';
 import { formatDateRange } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
+import { formatErrorMessage } from '../utils/formatError';
 import {
   User,
   Camera,
@@ -113,7 +114,7 @@ export default function Profile() {
 
       toast.success('User profile updated successfully.');
     } catch (err) {
-      toast.error(err.message || 'Failed to update profile.');
+      toast.error(formatErrorMessage(err, 'Failed to update profile. Please check your inputs.'));
     } finally {
       setLoading(false);
     }

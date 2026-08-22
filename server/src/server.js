@@ -7,6 +7,8 @@ const start = async () => {
   try {
     await testConnection();
     console.log('[DB]     PostgreSQL connected');
+    const { ensureDummyAccounts } = require('./utils/autoSeed');
+    await ensureDummyAccounts();
   } catch (err) {
     console.error('[DB]     PostgreSQL connection failed:', err.message);
     console.warn('[DB]     Server will start, but database features will be unavailable');

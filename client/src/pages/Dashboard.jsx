@@ -20,6 +20,8 @@ import {
   MapPin,
   Calendar,
   Sparkles,
+  Globe2,
+  Route,
 } from 'lucide-react';
 
 const REGIONS = [
@@ -123,18 +125,42 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Animated Journey Stats ──────────────────────────────────── */}
+      {/* ── Journey Statistics Bar ─────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-4 stagger-children">
         {[
-          { label: 'Journeys Planned', value: trips.length, icon: '✈', suffix: '' },
-          { label: 'Destinations', value: trips.reduce((acc, t) => acc + (t.stops?.length || 0), 0), icon: '📍', suffix: '' },
-          { label: 'Countries Explored', value: Math.min(trips.length * 2, 32), icon: '🌍', suffix: '+' },
+          {
+            label: 'Journeys Planned',
+            value: trips.length,
+            Icon: Route,
+            suffix: '',
+            color: 'text-terracotta bg-terracotta/10 border-terracotta/20',
+          },
+          {
+            label: 'Destinations',
+            value: trips.reduce((acc, t) => acc + (t.stops?.length || 0), 0),
+            Icon: MapPin,
+            suffix: '',
+            color: 'text-olive bg-olive/10 border-olive/20',
+          },
+          {
+            label: 'Countries Explored',
+            value: Math.min(trips.length * 2, 32),
+            Icon: Globe2,
+            suffix: '+',
+            color: 'text-ink bg-ink/5 border-ink/15',
+          },
         ].map((stat) => (
-          <div key={stat.label} className="surface p-4 md:p-5 flex items-center gap-3 card-hover-lift">
-            <span className="text-2xl">{stat.icon}</span>
+          <div key={stat.label} className="surface p-4 md:p-5 flex items-center gap-3.5 card-hover-lift">
+            <div className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 border ${stat.color}`}>
+              <stat.Icon size={20} />
+            </div>
             <div>
-              <div className="font-display text-2xl md:text-3xl text-ink animate-count">{stat.value}{stat.suffix}</div>
-              <div className="text-[11px] text-ink-subtle font-mono uppercase tracking-wide">{stat.label}</div>
+              <div className="font-display text-2xl md:text-3xl text-ink leading-tight animate-count">
+                {stat.value}{stat.suffix}
+              </div>
+              <div className="text-[11px] text-ink-subtle font-mono uppercase tracking-wide">
+                {stat.label}
+              </div>
             </div>
           </div>
         ))}

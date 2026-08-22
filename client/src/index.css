@@ -786,3 +786,14 @@ h1, h2, h3, h4 {
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-count { animation: count-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Ken Burns subtle cinematic zoom */
+@keyframes ken-burns {
+  0% { transform: scale(1.05) translate(0, 0); }
+  50% { transform: scale(1.15) translate(-1%, -1%); }
+  100% { transform: scale(1.05) translate(0, 0); }
+}
+.animate-ken-burns {
+  animation: ken-burns 24s ease-in-out infinite alternate;
+}
+

@@ -5,6 +5,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { formatDateEditorial, formatTime } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
+import { formatErrorMessage } from '../utils/formatError';
 import { ACTIVITY_TYPES } from '../utils/constants';
 import {
   Calendar,
@@ -42,7 +43,7 @@ export default function Timeline() {
       const res = await tripsService.getTimeline(tripId);
       setTimelineData(res.data || null);
     } catch (err) {
-      setError(err.message || 'Failed to load itinerary view.');
+      setError(formatErrorMessage(err, 'Failed to load itinerary view.'));
     } finally {
       setLoading(false);
     }

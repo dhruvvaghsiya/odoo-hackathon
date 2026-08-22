@@ -8,6 +8,7 @@ import Modal from '../components/Modal';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatDateShort } from '../utils/formatDate';
 import { getCityImage } from '../utils/constants';
+import { formatErrorMessage } from '../utils/formatError';
 import {
   Users,
   MapPin,
@@ -114,7 +115,7 @@ export default function Admin() {
       );
       toast.success(`User role updated to ${newRole.toUpperCase()}.`);
     } catch (err) {
-      toast.error(err.message || 'Failed to update user role.');
+      toast.error(formatErrorMessage(err, 'Failed to update user role.'));
     }
   };
 

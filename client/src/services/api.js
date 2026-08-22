@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { formatErrorMessage } from '../utils/formatError';
 
 const api = axios.create({
   baseURL: '/api',
@@ -36,11 +37,17 @@ api.interceptors.response.use(
       }
     }
 
-    // Construct a clean error object
+    // Construct a sanitized, human-friendly error object
+    const cleanMessage = formatErrorMessage(
+      data?.message || data?.error || error,
+      'Unable to complete request. Please try again.'
+    );
+
     const apiError = {
       status,
-      message: data?.message || error.message || 'Something went wrong',
+      message: cleanMessage,
       errors: data?.error || null,
+      raw: error,
     };
 
     return Promise.reject(apiError);
@@ -48,3 +55,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

@@ -11,6 +11,7 @@ import ErrorState from '../components/ErrorState';
 import { useToast } from '../context/ToastContext';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatDateShort } from '../utils/formatDate';
+import { formatErrorMessage } from '../utils/formatError';
 import {
   ResponsiveContainer,
   PieChart,
@@ -70,7 +71,7 @@ export default function Budget() {
       setAnalysis(analysisRes.data?.analysis || null);
       setExpenses(expensesRes.data?.expenses || []);
     } catch (err) {
-      setError(err.message || 'Failed to load budget analysis.');
+      setError(formatErrorMessage(err, 'Failed to load budget analysis.'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ export default function Budget() {
       }
       loadBudgetData();
     } catch (err) {
-      toast.error(err.message || 'Failed to save expense.');
+      toast.error(formatErrorMessage(err, 'Failed to save expense.'));
     }
   };
 
@@ -98,7 +99,7 @@ export default function Budget() {
       toast.success('Expense deleted.');
       loadBudgetData();
     } catch (err) {
-      toast.error(err.message || 'Failed to delete expense.');
+      toast.error(formatErrorMessage(err, 'Failed to delete expense.'));
     }
   };
 

@@ -15,8 +15,8 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Desktop side navigation */}
-      <nav className="hidden md:flex flex-col w-56 min-h-[calc(100vh-3.5rem)] border-r border-warm-gray-lighter bg-paper pt-6 px-3 shrink-0"
+      {/* Desktop side navigation — Fixed 100vh Viewport Height */}
+      <nav className="hidden md:flex flex-col w-56 h-[calc(100vh-3.5rem)] sticky top-14 border-r border-warm-gray-lighter bg-paper pt-6 px-3 shrink-0 overflow-y-auto"
            aria-label="Main navigation">
         <div className="flex flex-col gap-1 stagger-children">
           {navItems.map((item) => (

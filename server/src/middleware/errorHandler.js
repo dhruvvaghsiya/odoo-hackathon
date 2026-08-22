@@ -53,6 +53,26 @@ const classifyError = (err) => {
     };
   }
 
+  // ── Database Connection errors ──────────────────
+  if (err.code === 'ECONNREFUSED') {
+    return {
+      statusCode: 503,
+      message: 'Database server is currently unavailable. Please make sure PostgreSQL is running.',
+    };
+  }
+  if (err.code === '28P01') {
+    return {
+      statusCode: 500,
+      message: 'Database authentication failed. Please check PostgreSQL credentials.',
+    };
+  }
+  if (err.code === '3D000') {
+    return {
+      statusCode: 500,
+      message: 'Database does not exist. Please check your DB_NAME configuration.',
+    };
+  }
+
   // ── express-validator / SyntaxError (bad JSON) ───
   if (err.type === 'entity.parse.failed') {
     return { statusCode: 400, message: 'Malformed JSON in request body.' };
@@ -70,8 +90,8 @@ const classifyError = (err) => {
  * Central error-handling middleware.
  * Must have the 4-argument signature so Express recognises it as an error handler.
  *
- * SECURITY: in production, generic 500 messages are returned. SQL errors,
- * stack traces, and internal details are never exposed.
+ * SECURITY: User-facing message is always clean and descriptive.
+ * SQL errors and technical stack traces are never exposed in message.
  */
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, _req, res, _next) => {
@@ -97,10 +117,11 @@ const errorHandler = (err, _req, res, _next) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
-    message: isDev() ? err.message : 'Internal server error.',
+    message: 'We encountered an unexpected issue processing your request. Please try again.',
     data: null,
     error: isDev() ? err.stack : null,
   });
 };
 
 module.exports = errorHandler;
+

@@ -6,6 +6,7 @@ import { activitiesService } from '../services/activities';
 import { useToast } from '../context/ToastContext';
 import { getCityImage } from '../utils/constants';
 import { formatCurrency } from '../utils/formatCurrency';
+import { formatErrorMessage } from '../utils/formatError';
 import {
   MapPin,
   Calendar,
@@ -119,7 +120,7 @@ export default function CreateTrip() {
       toast.success(`Journey "${newTrip?.name || name}" initiated.`);
       navigate(`/trips/${newTrip?.id || ''}`);
     } catch (err) {
-      setError(err.message || 'Failed to create journey.');
+      setError(formatErrorMessage(err, 'Failed to create journey. Please check your inputs and try again.'));
     } finally {
       setLoading(false);
     }

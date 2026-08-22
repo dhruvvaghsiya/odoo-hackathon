@@ -11,6 +11,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { formatDateRange } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
+import { formatErrorMessage } from '../utils/formatError';
 import {
   MapPin,
   Calendar,
@@ -65,7 +66,7 @@ export default function ItineraryBuilder() {
       setStops(res.data?.stops || []);
       setSummary(res.data?.summary || null);
     } catch (err) {
-      setError(err.message || 'Failed to load itinerary.');
+      setError(formatErrorMessage(err, 'Unable to load itinerary. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,7 @@ export default function ItineraryBuilder() {
       toast.success(`${city.name} added as new section.`);
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to add section.');
+      toast.error(formatErrorMessage(err, 'Failed to add section.'));
     }
   };
 
@@ -92,7 +93,7 @@ export default function ItineraryBuilder() {
       toast.success('Section removed.');
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to remove section.');
+      toast.error(formatErrorMessage(err, 'Failed to remove section.'));
     }
   };
 
@@ -102,7 +103,7 @@ export default function ItineraryBuilder() {
       toast.success('Sections reordered.');
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to reorder sections.');
+      toast.error(formatErrorMessage(err, 'Failed to reorder sections.'));
     }
   };
 
@@ -120,7 +121,7 @@ export default function ItineraryBuilder() {
       toast.success(`"${activity.name}" added to section.`);
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to add activity.');
+      toast.error(formatErrorMessage(err, 'Failed to add activity.'));
     }
   };
 
@@ -130,7 +131,7 @@ export default function ItineraryBuilder() {
       toast.success('Activity removed.');
       loadItinerary();
     } catch (err) {
-      toast.error(err.message || 'Failed to remove activity.');
+      toast.error(formatErrorMessage(err, 'Failed to remove activity.'));
     }
   };
 
