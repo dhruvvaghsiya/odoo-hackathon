@@ -8,6 +8,7 @@ const activityRoutes = require('./activity.routes');
 const searchRoutes = require('./search.routes');
 const publicRoutes = require('./public.routes');
 const notificationRoutes = require('./notification.routes');
+const adminRoutes = require('./admin.routes');
 const { listCityActivities } = require('../controllers/activity.controller');
 
 const router = Router();
@@ -22,9 +23,11 @@ router.use('/activities', activityRoutes);
 router.use('/search', searchRoutes);
 router.use('/public', publicRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/admin', adminRoutes);
 
 // ── Nested city → activities route ─────────────────
 router.get('/cities/:cityId/activities', listCityActivities);
 
 module.exports = router;
+
 
