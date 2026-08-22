@@ -5,48 +5,15 @@ const { success, created, fail } = require('../utils/apiResponse');
 
 // ── Helpers ────────────────────────────────────────────
 
-/** Basic email format check */
-const isValidEmail = (email) =>
-  /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
-
 /** Strip password_hash from a user row */
 const sanitiseUser = ({ password_hash, ...rest }) => rest;
 
 // ── POST /api/auth/signup ──────────────────────────────
+// Validation is handled by signupRules middleware (see routes)
 
 const signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-
-    // ── Validation ──────────────────────────────────
-    const errors = [];
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      errors.push('Name is required.');
-    } else if (name.trim().length > 100) {
-      errors.push('Name must be 100 characters or fewer.');
-    }
-
-    if (!email || typeof email !== 'string' || email.trim().length === 0) {
-      errors.push('Email is required.');
-    } else if (!isValidEmail(email.trim())) {
-      errors.push('Please provide a valid email address.');
-    }
-
-    if (!password || typeof password !== 'string') {
-      errors.push('Password is required.');
-    } else if (password.length < 8) {
-      errors.push('Password must be at least 8 characters.');
-    } else if (password.length > 128) {
-      errors.push('Password must be 128 characters or fewer.');
-    }
-
-    if (errors.length > 0) {
-      return fail(res, {
-        statusCode: 400,
-        message: 'Validation failed.',
-        error: errors,
-      });
-    }
 
     // ── Duplicate email check ───────────────────────
     const { rows: existing } = await query(
@@ -84,25 +51,11 @@ const signup = async (req, res, next) => {
 };
 
 // ── POST /api/auth/login ───────────────────────────────
+// Validation is handled by loginRules middleware (see routes)
 
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    // ── Validation ──────────────────────────────────
-    if (!email || typeof email !== 'string' || email.trim().length === 0) {
-      return fail(res, {
-        statusCode: 400,
-        message: 'Email is required.',
-      });
-    }
-
-    if (!password || typeof password !== 'string') {
-      return fail(res, {
-        statusCode: 400,
-        message: 'Password is required.',
-      });
-    }
 
     // ── Find user ───────────────────────────────────
     const { rows } = await query(
@@ -112,6 +65,7 @@ const login = async (req, res, next) => {
       [email.trim().toLowerCase()],
     );
 
+    // Generic message prevents user-enumeration attacks
     if (rows.length === 0) {
       return fail(res, {
         statusCode: 401,

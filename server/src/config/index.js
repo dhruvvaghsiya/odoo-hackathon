@@ -26,6 +26,18 @@ const config = {
 
   // CORS
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+
+  // Rate limiting
+  rateLimit: {
+    auth: {
+      windowMs: parseInt(process.env.RATE_LIMIT_AUTH_WINDOW_MS, 10) || 15 * 60 * 1000,
+      max: parseInt(process.env.RATE_LIMIT_AUTH_MAX, 10) || 15,
+    },
+    api: {
+      windowMs: parseInt(process.env.RATE_LIMIT_API_WINDOW_MS, 10) || 15 * 60 * 1000,
+      max: parseInt(process.env.RATE_LIMIT_API_MAX, 10) || 100,
+    },
+  },
 };
 
 module.exports = config;
