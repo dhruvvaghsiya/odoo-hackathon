@@ -59,6 +59,15 @@ const DUMMY_USERS = [
  */
 const ensureDummyAccounts = async () => {
   try {
+    // ── 1. Ensure new profile columns exist in users table ────────
+    await query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS additional_info TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo TEXT;
+    `);
+
     const defaultPasswordHash = await hashPassword('password123');
 
     for (const u of DUMMY_USERS) {

@@ -101,8 +101,8 @@ export default function Login() {
             JOURNEY CANVAS · SIGN IN
           </span>
 
-          <h1 className="font-display text-3xl xl:text-4xl text-white leading-snug drop-shadow-sm">
-            {hero.quote.split(' ').slice(0, 4).join(' ')}{' '}
+          <h1 className="font-display text-3xl xl:text-4xl !text-white leading-snug drop-shadow-sm" style={{ color: '#FFFFFF' }}>
+            <span style={{ color: '#FFFFFF' }}>{hero.quote.split(' ').slice(0, 4).join(' ')}</span>{' '}
             <em className="text-terracotta-light not-italic font-medium">
               {hero.quote.split(' ').slice(4).join(' ')}
             </em>

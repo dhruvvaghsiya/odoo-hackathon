@@ -132,7 +132,7 @@ export default function Signup() {
             JOURNEY CANVAS · REGISTER USERS
           </span>
 
-          <h2 className="font-display text-3xl xl:text-4xl text-white leading-snug drop-shadow-sm">
+          <h2 className="font-display text-3xl xl:text-4xl !text-white leading-snug drop-shadow-sm" style={{ color: '#FFFFFF' }}>
             {hero.quote}
           </h2>
 
