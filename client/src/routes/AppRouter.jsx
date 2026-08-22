@@ -17,6 +17,7 @@ import Profile from '../pages/Profile';
 import Discover from '../pages/Discover';
 import Admin from '../pages/Admin';
 import Community from '../pages/Community';
+import CalendarView from '../pages/CalendarView';
 import ForgotPassword from '../pages/ForgotPassword';
 
 export default function AppRouter() {
@@ -56,6 +57,7 @@ export default function AppRouter() {
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="trips" element={<MyTrips />} />
+        <Route path="calendar" element={<CalendarView />} />
         <Route path="trips/new" element={<CreateTrip />} />
         <Route path="trips/:id" element={<ItineraryBuilder />} />
         <Route path="trips/:id/timeline" element={<Timeline />} />
