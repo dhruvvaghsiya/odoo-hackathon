@@ -578,3 +578,83 @@ INSERT INTO expenses (trip_id, category, amount, currency, expense_date, descrip
    'MEAL', 15.00, 'USD', '2026-11-17', 'Turkish breakfast feast by the waterfront')
 ON CONFLICT DO NOTHING;
 
+
+-- ============================================================
+-- NOTIFICATIONS
+-- ============================================================
+INSERT INTO notifications (user_id, type, title, message, is_read, metadata) VALUES
+  -- Alice: budget warning
+  (
+    (SELECT id FROM users WHERE email = 'alice@example.com'),
+    'BUDGET_WARNING',
+    'Budget alert: 82% spent on "Summer in Europe"',
+    'You''ve used 82% of your EUR 3500.00 budget for "Summer in Europe". EUR 630.00 remaining.',
+    false,
+    '{"trip_id": "placeholder", "percentage": 82}'
+  ),
+  -- Alice: upcoming trip
+  (
+    (SELECT id FROM users WHERE email = 'alice@example.com'),
+    'UPCOMING_TRIP',
+    '"Japan Culture Deep Dive" starts in 3 days!',
+    'Your trip "Japan Culture Deep Dive" begins on 2026-10-01. Time to finalize your itinerary!',
+    false,
+    '{"trip_id": "placeholder", "days_until": 3}'
+  ),
+  -- Alice: system notification
+  (
+    (SELECT id FROM users WHERE email = 'alice@example.com'),
+    'SYSTEM',
+    'Welcome to GlobeTrotter!',
+    'Start planning your next adventure. Create a trip, add stops, and track your budget all in one place.',
+    true,
+    NULL
+  ),
+
+  -- Bob: trip copied
+  (
+    (SELECT id FROM users WHERE email = 'bob@example.com'),
+    'TRIP_COPIED',
+    'Someone copied your trip!',
+    'Charlie Kumar copied your public trip "Southeast Asia Explorer".',
+    false,
+    '{"trip_id": "placeholder", "copier_name": "Charlie Kumar"}'
+  ),
+  -- Bob: budget exceeded
+  (
+    (SELECT id FROM users WHERE email = 'bob@example.com'),
+    'BUDGET_EXCEEDED',
+    'Budget exceeded on "Southeast Asia Explorer"',
+    'You''ve spent USD 2159.50 on "Southeast Asia Explorer", which is USD 159.50 over your USD 2000.00 budget.',
+    false,
+    '{"trip_id": "placeholder", "total_budget": 2000, "total_spent": 2159.50}'
+  ),
+  -- Bob: system
+  (
+    (SELECT id FROM users WHERE email = 'bob@example.com'),
+    'SYSTEM',
+    'Welcome to GlobeTrotter!',
+    'Start planning your next adventure. Create a trip, add stops, and track your budget all in one place.',
+    true,
+    NULL
+  ),
+
+  -- Charlie: trip shared
+  (
+    (SELECT id FROM users WHERE email = 'charlie@example.com'),
+    'TRIP_SHARED',
+    'Alice Johnson shared a trip with you',
+    '"Summer in Europe" has been shared with you. Check it out!',
+    false,
+    '{"trip_id": "placeholder", "sharer_name": "Alice Johnson"}'
+  ),
+  -- Charlie: upcoming trip
+  (
+    (SELECT id FROM users WHERE email = 'charlie@example.com'),
+    'UPCOMING_TRIP',
+    '"Middle East & Turkey" starts in 7 days!',
+    'Your trip "Middle East & Turkey" begins on 2026-11-05. Time to finalize your itinerary!',
+    true,
+    '{"trip_id": "placeholder", "days_until": 7}'
+  )
+ON CONFLICT DO NOTHING;

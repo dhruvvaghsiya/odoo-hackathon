@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const notificationService = require('./notification.service');
 
 // ── Constants ──────────────────────────────────────────
 
@@ -69,6 +70,11 @@ const create = async (tripId, userId, data) => {
       data.expense_date || null,
       data.description?.trim() || null,
     ],
+  );
+
+  // Fire-and-forget budget notifications
+  checkBudgetNotifications(tripId, userId, trip).catch((e) =>
+    console.error('[NOTIFY] Budget check failed:', e.message),
   );
 
   return formatExpense(rows[0]);
@@ -232,7 +238,16 @@ const update = async (expenseId, tripId, userId, data) => {
     params,
   );
 
-  return rows.length > 0 ? formatExpense(rows[0]) : null;
+  const result = rows.length > 0 ? formatExpense(rows[0]) : null;
+
+  // Fire-and-forget budget notifications after update
+  if (result && data.amount !== undefined) {
+    checkBudgetNotifications(tripId, userId, trip).catch((e) =>
+      console.error('[NOTIFY] Budget check failed:', e.message),
+    );
+  }
+
+  return result;
 };
 
 // ── DELETE ─────────────────────────────────────────────
@@ -379,6 +394,24 @@ const formatExpense = (row) => ({
   ...row,
   amount: parseFloat(row.amount),
 });
+
+/**
+ * Check if budget thresholds are crossed and send notifications.
+ * Called after expense create/update.
+ */
+const checkBudgetNotifications = async (tripId, userId, trip) => {
+  if (!trip.total_budget) return;
+
+  const { rows } = await db.query(
+    'SELECT COALESCE(SUM(amount), 0)::numeric(12,2) AS total_spent FROM expenses WHERE trip_id = $1',
+    [tripId],
+  );
+  const totalSpent = parseFloat(rows[0].total_spent);
+
+  // Check 80% warning first, then exceeded
+  await notificationService.notifyBudgetWarning(userId, trip, totalSpent);
+  await notificationService.notifyBudgetExceeded(userId, trip, totalSpent);
+};
 
 module.exports = {
   VALID_CATEGORIES,

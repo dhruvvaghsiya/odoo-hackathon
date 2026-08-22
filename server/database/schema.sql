@@ -274,3 +274,33 @@ CREATE OR REPLACE TRIGGER trg_expenses_updated_at
   BEFORE UPDATE ON expenses
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+
+-- ============================================================
+-- 8. NOTIFICATIONS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id          UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID          NOT NULL
+                             REFERENCES users (id) ON DELETE CASCADE,
+  type        VARCHAR(30)   NOT NULL,
+  title       VARCHAR(200)  NOT NULL,
+  message     TEXT,
+  is_read     BOOLEAN       NOT NULL DEFAULT false,
+  metadata    JSONB,
+  created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT chk_notifications_type
+    CHECK (type IN (
+      'TRIP_SHARED',
+      'TRIP_COPIED',
+      'BUDGET_EXCEEDED',
+      'BUDGET_WARNING',
+      'UPCOMING_TRIP',
+      'SYSTEM'
+    ))
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id    ON notifications (user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read    ON notifications (user_id, is_read) WHERE is_read = false;
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications (created_at DESC);
