@@ -530,23 +530,259 @@ h1, h2, h3, h4 {
   margin-right: auto;
 }
 
-/* ── ANIMATIONS ────────────────────────────────────────────── */
+/* ── SIGNATURE EMOTIONAL & EDITORIAL ANIMATIONS ─────────────── */
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
-.animate-fade-in { animation: fade-in 200ms ease; }
-.animate-slide-up { animation: slide-up 300ms ease; }
-.animate-scale-in { animation: scale-in 200ms ease; }
+/* Authentic physical passport stamp press animation */
+@keyframes stamp-press {
+  0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-3deg); opacity: 1; }
+  80% { transform: scale(1.02) rotate(-3deg); }
+  100% { transform: scale(1) rotate(-3deg); }
+}
+
+/* Floating compass animation */
+@keyframes float-compass {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(4deg); }
+}
+
+/* Shimmer reflection */
+@keyframes shimmer-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Pulse radar for active destinations */
+@keyframes radar-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(196, 101, 74, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(196, 101, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(196, 101, 74, 0); }
+}
+
+/* Flowing dotted line for journey routes */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+.animate-fade-in { animation: fade-in 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-slide-up { animation: slide-up 400ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-scale-in { animation: scale-in 350ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-stamp { animation: stamp-press 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-float { animation: float-compass 6s ease-in-out infinite; }
+.animate-radar { animation: radar-pulse 2s infinite; }
+
+/* Micro-interaction card lift */
+.card-hover-lift {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px -6px rgba(27, 36, 50, 0.12);
+}
+
+/* Editorial quote card */
+.editorial-quote {
+  position: relative;
+  background: linear-gradient(135deg, rgba(250, 247, 242, 0.9) 0%, rgba(245, 240, 232, 0.9) 100%);
+  border-left: 3px solid var(--color-terracotta);
+}
+
+.editorial-quote::before {
+  content: '“';
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  color: var(--color-terracotta);
+  opacity: 0.15;
+  line-height: 1;
+}
+
+/* ── ADVANCED EMOTIONAL ANIMATIONS ─────────────────────────── */
+
+/* Typewriter cursor blink */
+@keyframes cursor-blink {
+  0%, 100% { border-right-color: transparent; }
+  50% { border-right-color: var(--color-terracotta); }
+}
+.typewriter-cursor {
+  border-right: 2px solid var(--color-terracotta);
+  animation: cursor-blink 1s steps(1) infinite;
+  padding-right: 2px;
+}
+
+/* Animated wave underline on hover */
+@keyframes wave-underline {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.wave-link {
+  background: linear-gradient(90deg, var(--color-terracotta), var(--color-olive), var(--color-terracotta));
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wave-underline 3s linear infinite;
+}
+
+/* Parallax card shimmer */
+@keyframes card-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.card-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.card-shimmer:hover::before {
+  opacity: 1;
+  animation: card-shimmer 1.2s ease infinite;
+}
+
+/* Journey dot-trail loader */
+@keyframes dot-trail {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1.1); opacity: 1; }
+}
+.dot-trail > span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--color-terracotta);
+  margin: 0 2px;
+  animation: dot-trail 1.4s ease-in-out infinite;
+}
+.dot-trail > span:nth-child(2) { animation-delay: 0.2s; }
+.dot-trail > span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Page enter stagger helper — apply to grid/list containers */
+.stagger-children > * {
+  opacity: 0;
+  animation: slide-up 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 420ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 480ms; }
+
+/* Gradient border glow on focus for form inputs */
+.input-glow {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.input-glow:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 3px rgba(196, 101, 74, 0.15), 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Pulsing hero ring */
+@keyframes hero-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 101, 74, 0.25); }
+  50% { box-shadow: 0 0 0 14px rgba(196, 101, 74, 0); }
+}
+.hero-ring {
+  animation: hero-ring 3s ease-in-out infinite;
+}
+
+/* Spinning compass needle */
+@keyframes compass-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.compass-spin {
+  animation: compass-spin 8s linear infinite;
+  transform-origin: center;
+}
+
+/* Auth card entrance with elegant drop */
+@keyframes auth-enter {
+  0% { opacity: 0; transform: translateY(24px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-auth-enter {
+  animation: auth-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Form field stagger */
+.form-stagger > * {
+  opacity: 0;
+  animation: slide-up 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.form-stagger > *:nth-child(1) { animation-delay: 200ms; }
+.form-stagger > *:nth-child(2) { animation-delay: 280ms; }
+.form-stagger > *:nth-child(3) { animation-delay: 360ms; }
+.form-stagger > *:nth-child(4) { animation-delay: 440ms; }
+.form-stagger > *:nth-child(5) { animation-delay: 520ms; }
+.form-stagger > *:nth-child(6) { animation-delay: 600ms; }
+.form-stagger > *:nth-child(7) { animation-delay: 680ms; }
+.form-stagger > *:nth-child(8) { animation-delay: 760ms; }
+
+/* Subtle moving background gradient for auth pages */
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-animate {
+  background-size: 300% 300%;
+  animation: gradient-flow 12s ease infinite;
+}
+
+/* Button ripple click feedback */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.btn-ripple:active::after {
+  transform: scale(2.5);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Navigation active indicator slide */
+.nav-active-indicator {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease;
+}
+
+/* Stats counter animated number */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-count { animation: count-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }

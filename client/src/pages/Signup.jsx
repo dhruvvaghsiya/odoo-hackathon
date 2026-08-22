@@ -67,19 +67,23 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-6 md:p-12 overflow-hidden bg-ink">
-      {/* Scenic Background Image */}
+      {/* Scenic Background Image — kept as-is */}
       <img
         src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=85"
         alt="Travel Scenery"
-        className="absolute inset-0 w-full h-full object-cover opacity-35 filter blur-[1px]"
+        className="absolute inset-0 w-full h-full object-cover opacity-35 filter blur-[1px] transition-transform duration-[20000ms] ease-linear scale-105"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/40 backdrop-blur-[2px]" />
 
-      <div className="relative z-10 surface w-full max-w-2xl p-8 md:p-12 shadow-lg space-y-6 bg-paper/98 border border-warm-gray-light">
+      {/* Floating atmospheric decorations */}
+      <div className="absolute top-10 right-12 text-white/8 font-display text-5xl pointer-events-none select-none animate-float" style={{ animationDuration: '9s' }}>🧭</div>
+      <div className="absolute bottom-16 left-10 text-white/5 font-mono text-xs pointer-events-none select-none animate-fade-in" style={{ animationDelay: '0.8s' }}>35.6762°N · 139.6503°E</div>
+
+      <div className="relative z-10 surface w-full max-w-2xl p-8 md:p-12 shadow-lg space-y-6 bg-paper/98 border border-warm-gray-light animate-auth-enter">
         {/* Photo Avatar Circle as required by wireframe Screen 2 */}
         <div className="flex flex-col items-center justify-center">
           <label className="cursor-pointer group relative">
-            <div className="w-28 h-28 rounded-full border-2 border-dashed border-ink/40 bg-paper-warm overflow-hidden flex flex-col items-center justify-center text-ink-subtle group-hover:border-terracotta transition-colors shadow-xs">
+            <div className="w-28 h-28 rounded-full border-2 border-dashed border-terracotta/40 bg-paper-warm overflow-hidden flex flex-col items-center justify-center text-ink-subtle group-hover:border-terracotta transition-colors shadow-xs hero-ring">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="User Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -100,8 +104,8 @@ export default function Signup() {
         </div>
 
         <div className="text-center">
-          <span className="text-label text-[10px] block mb-1">REGISTRATION SCREEN (SCREEN 2)</span>
-          <h2 className="font-display text-3xl text-ink">Register Users</h2>
+          <span className="travel-stamp text-terracotta text-[10px] animate-stamp" style={{ animationDelay: '400ms' }}>JOURNEY CANVAS · JOIN US</span>
+          <h2 className="font-display text-3xl text-ink mt-1">Begin Your Journey</h2>
           <p className="text-xs text-ink-muted mt-1 font-light">
             Fill in your explorer details to initialize your passport.
           </p>
@@ -113,7 +117,7 @@ export default function Signup() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 form-stagger">
           {/* Row 1: First Name & Last Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="input-group">
@@ -124,7 +128,7 @@ export default function Signup() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First Name"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
             <div className="input-group">
@@ -135,7 +139,7 @@ export default function Signup() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last Name"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
           </div>
@@ -150,7 +154,7 @@ export default function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
             <div className="input-group">
@@ -160,7 +164,7 @@ export default function Signup() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="Phone Number"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
           </div>
@@ -174,7 +178,7 @@ export default function Signup() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="City"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
             <div className="input-group">
@@ -184,7 +188,7 @@ export default function Signup() {
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="Country"
-                className="input-field"
+                className="input-field input-glow"
               />
             </div>
           </div>
@@ -198,7 +202,7 @@ export default function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 6 characters"
-              className="input-field font-mono"
+              className="input-field font-mono input-glow"
             />
           </div>
 
@@ -218,12 +222,15 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-terracotta w-full justify-center !py-3.5 mt-2 shadow-xs"
+            className="btn btn-terracotta w-full justify-center !py-3.5 mt-2 shadow-xs btn-ripple"
           >
-            {loading ? 'Registering...' : (
-              <>
-                Register Users <ArrowRight size={16} />
-              </>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                Creating your passport
+                <span className="dot-trail"><span /><span /><span /></span>
+              </span>
+            ) : (
+              <>Create Account <ArrowRight size={16} /></>
             )}
           </button>
         </form>

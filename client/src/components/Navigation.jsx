@@ -18,17 +18,17 @@ export default function Navigation() {
       {/* Desktop side navigation */}
       <nav className="hidden md:flex flex-col w-56 min-h-[calc(100vh-3.5rem)] border-r border-warm-gray-lighter bg-paper pt-6 px-3 shrink-0"
            aria-label="Main navigation">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 stagger-children">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors no-underline ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors no-underline relative ${
                   isActive
-                    ? 'bg-terracotta/8 text-terracotta'
-                    : 'text-ink-muted hover:text-ink hover:bg-paper-warm'
+                    ? 'bg-terracotta/8 text-terracotta border-l-2 border-terracotta'
+                    : 'text-ink-muted hover:text-ink hover:bg-paper-warm border-l-2 border-transparent'
                 }`
               }
             >
@@ -41,10 +41,10 @@ export default function Navigation() {
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors no-underline ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors no-underline relative ${
                   isActive
-                    ? 'bg-terracotta/8 text-terracotta'
-                    : 'text-ink-muted hover:text-ink hover:bg-paper-warm'
+                    ? 'bg-terracotta/8 text-terracotta border-l-2 border-terracotta'
+                    : 'text-ink-muted hover:text-ink hover:bg-paper-warm border-l-2 border-transparent'
                 }`
               }
             >
@@ -54,11 +54,11 @@ export default function Navigation() {
           )}
         </div>
 
-        {/* New Trip CTA */}
+        {/* New Trip CTA with pulse animation */}
         <div className="mt-auto pb-6 pt-4">
           <NavLink
             to="/trips/new"
-            className="btn btn-terracotta w-full justify-center no-underline"
+            className="btn btn-terracotta w-full justify-center no-underline animate-radar"
           >
             <Plus size={16} />
             New Journey

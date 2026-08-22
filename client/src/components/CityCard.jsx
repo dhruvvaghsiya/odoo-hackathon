@@ -8,7 +8,7 @@ export default function CityCard({ city, onAdd, isAdded = false, compact = false
 
   if (compact) {
     return (
-      <div className="surface p-3 flex items-center justify-between gap-3 group hover:border-ink transition-colors">
+      <div className="surface p-3 flex items-center justify-between gap-3 group hover:border-ink transition-colors card-hover-lift">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={imageUrl}

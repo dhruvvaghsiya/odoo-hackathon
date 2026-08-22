@@ -91,31 +91,53 @@ export default function Dashboard() {
 
   return (
     <div className="page page-wide space-y-10">
-      {/* ── Screen 3: Banner Image ─────────────────────────────────── */}
-      <div className="relative surface overflow-hidden bg-ink text-paper rounded-lg shadow-md min-h-[300px] md:min-h-[380px] flex flex-col justify-end p-6 md:p-10">
+      {/* ── Screen 3: Hero Banner Image ─────────────────────────────────── */}
+      <div className="relative surface overflow-hidden bg-ink text-paper rounded-lg shadow-md min-h-[320px] md:min-h-[420px] flex flex-col justify-end p-6 md:p-10 animate-fade-in">
         <img
           src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=80"
           alt="Banner Image"
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className="absolute inset-0 w-full h-full object-cover opacity-50 transition-transform duration-[8000ms] ease-linear hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
 
-        <div className="relative z-10 max-w-2xl space-y-2">
-          <span className="travel-stamp text-terracotta bg-white/10 backdrop-blur-xs border-terracotta text-[10px]">
-            MAIN LANDING PAGE (SCREEN 3)
+        {/* Animated floating coordinates top-right */}
+        <div className="absolute top-4 right-5 font-mono text-[10px] text-white/40 tracking-widest animate-fade-in" style={{ animationDelay: '600ms' }}>
+          48.8566°N, 2.3522°E
+        </div>
+
+        <div className="relative z-10 max-w-2xl space-y-3">
+          <span className="travel-stamp text-terracotta bg-white/10 backdrop-blur-xs border-terracotta text-[10px] animate-stamp" style={{ animationDelay: '200ms' }}>
+            JOURNEY CANVAS · GLOBETROTTER
           </span>
-          <h1 className="text-display text-3xl md:text-5xl text-white font-normal leading-tight">
-            Banner Image & Exploration Hub
+          <h1 className="text-display text-3xl md:text-5xl text-white font-normal leading-tight animate-slide-up" style={{ animationDelay: '100ms' }}>
+            The world is not a problem<br />to be solved. <em>It is a place</em><br />to be explored.
           </h1>
-          <p className="text-warm-gray-light text-sm md:text-base font-light">
-            Welcome back, {user?.name || 'Explorer'}. Plan multi-city journeys, discover top regional selections, and track your travel ledger.
+          <p className="text-warm-gray-light text-sm md:text-base font-light animate-fade-in" style={{ animationDelay: '300ms' }}>
+            Welcome back, <strong className="text-terracotta">{user?.name || 'Explorer'}</strong>. Your next adventure is waiting.
           </p>
-          <div className="pt-2">
+          <div className="pt-2 animate-fade-in" style={{ animationDelay: '400ms' }}>
             <Link to="/trips/new" className="btn btn-terracotta no-underline shadow-sm">
               <Plus size={16} /> + Plan a trip
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* ── Animated Journey Stats ──────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-4 stagger-children">
+        {[
+          { label: 'Journeys Planned', value: trips.length, icon: '✈', suffix: '' },
+          { label: 'Destinations', value: trips.reduce((acc, t) => acc + (t.stops?.length || 0), 0), icon: '📍', suffix: '' },
+          { label: 'Countries Explored', value: Math.min(trips.length * 2, 32), icon: '🌍', suffix: '+' },
+        ].map((stat) => (
+          <div key={stat.label} className="surface p-4 md:p-5 flex items-center gap-3 card-hover-lift">
+            <span className="text-2xl">{stat.icon}</span>
+            <div>
+              <div className="font-display text-2xl md:text-3xl text-ink animate-count">{stat.value}{stat.suffix}</div>
+              <div className="text-[11px] text-ink-subtle font-mono uppercase tracking-wide">{stat.label}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ── Screen 3: Search Bar + Group By + Filter + Sort By Controls ── */}
@@ -128,7 +150,7 @@ export default function Dashboard() {
             placeholder="Search bar ..... (search trips, destinations)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field !pl-9 text-sm"
+            className="input-field !pl-9 text-sm input-glow"
           />
         </div>
 
@@ -189,12 +211,12 @@ export default function Dashboard() {
           <span className="text-xs text-ink-subtle font-mono">GLOBAL DESTINATIONS</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 stagger-children">
           {REGIONS.map((region) => (
             <div
               key={region.name}
               onClick={() => navigate(`/discover?region=${encodeURIComponent(region.name)}`)}
-              className="surface overflow-hidden group cursor-pointer hover:shadow-md hover:border-ink transition-all duration-300 flex flex-col"
+              className="surface overflow-hidden group cursor-pointer hover:shadow-md hover:border-ink transition-all duration-300 flex flex-col card-hover-lift card-shimmer relative"
             >
               <div className="relative h-28 overflow-hidden bg-paper-warm">
                 <img
@@ -241,7 +263,7 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
             {filteredTrips.map((trip) => (
               <TripCard key={trip.id} trip={trip} />
             ))}
