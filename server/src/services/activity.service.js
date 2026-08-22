@@ -249,9 +249,32 @@ const findByCityId = async (cityId, opts = {}) => {
   return { activities: rows, total, page, limit };
 };
 
+// ── POPULAR ────────────────────────────────────────────
+
+/**
+ * Return the top N activities by popularity score, with city info.
+ * Uses the existing idx_activities_popularity index.
+ *
+ * @param {number} [limit=10]
+ * @returns {Promise<object[]>}
+ */
+const findPopular = async (limit = 10) => {
+  const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+  const { rows } = await db.query(
+    `SELECT ${ACTIVITY_WITH_CITY}
+     FROM activities a
+     JOIN cities c ON c.id = a.city_id
+     ORDER BY a.popularity DESC
+     LIMIT $1`,
+    [safeLimit],
+  );
+  return rows.map(formatWithCity);
+};
+
 module.exports = {
   findAll,
   findById,
   search,
   findByCityId,
+  findPopular,
 };

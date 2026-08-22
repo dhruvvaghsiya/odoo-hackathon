@@ -147,9 +147,26 @@ const listCityActivities = async (req, res, next) => {
   }
 };
 
+// ── GET /api/activities/popular ────────────────────────
+
+const getPopularActivities = async (req, res, next) => {
+  try {
+    const { limit } = req.query;
+    const activities = await activityService.findPopular(limit);
+
+    return success(res, {
+      message: 'Popular activities retrieved successfully.',
+      data: { activities },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   listActivities,
   searchActivities,
   getActivityById,
   listCityActivities,
+  getPopularActivities,
 };
