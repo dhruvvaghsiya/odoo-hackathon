@@ -478,3 +478,103 @@ INSERT INTO trip_activities (trip_stop_id, activity_id, activity_date, start_tim
     'Board rental included. Morning swell is best.', 30.00
   )
 ON CONFLICT DO NOTHING;
+
+
+-- ============================================================
+-- EXPENSES
+-- ============================================================
+-- Realistic expenses across multiple trips and categories
+
+-- Alice: Summer in Europe (EUR)
+INSERT INTO expenses (trip_id, category, amount, currency, expense_date, description) VALUES
+  -- Paris
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'TRANSPORT', 120.00, 'EUR', '2026-06-15', 'CDG to city center — taxi'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'STAY', 540.00, 'EUR', '2026-06-15', 'Airbnb Marais apartment (6 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'MEAL', 42.50, 'EUR', '2026-06-15', 'Dinner at Le Bouillon Chartier'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'ACTIVITY', 26.80, 'EUR', '2026-06-17', 'Eiffel Tower summit tickets'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'ACTIVITY', 17.00, 'EUR', '2026-06-16', 'Louvre Museum entry'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'MEAL', 18.00, 'EUR', '2026-06-18', 'Crêpes and coffee near Sacré-Cœur'),
+
+  -- Amsterdam
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'TRANSPORT', 85.00, 'EUR', '2026-06-22', 'Thalys Paris → Amsterdam'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'STAY', 420.00, 'EUR', '2026-06-22', 'Hotel near Jordaan (5 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'ACTIVITY', 22.50, 'EUR', '2026-06-23', 'Rijksmuseum entry'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'MEAL', 35.00, 'EUR', '2026-06-24', 'Indonesian rijsttafel dinner'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'OTHER', 12.00, 'EUR', '2026-06-25', 'Bike rental for the day'),
+
+  -- Prague
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'TRANSPORT', 45.00, 'EUR', '2026-06-28', 'FlixBus Amsterdam → Prague'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'STAY', 280.00, 'EUR', '2026-06-28', 'Old Town hostel (8 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'MEAL', 15.00, 'EUR', '2026-06-29', 'Svíčková and beer at a local pub'),
+  ((SELECT id FROM trips WHERE name = 'Summer in Europe' LIMIT 1),
+   'ACTIVITY', 25.00, 'EUR', '2026-06-29', 'Czech beer tasting tour'),
+
+-- Bob: Southeast Asia Explorer (USD)
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'TRANSPORT', 350.00, 'USD', '2026-09-01', 'Flight to Bangkok'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'STAY', 180.00, 'USD', '2026-09-01', 'Khaosan Road guesthouse (7 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'MEAL', 5.50, 'USD', '2026-09-02', 'Street pad thai + mango sticky rice'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'ACTIVITY', 16.00, 'USD', '2026-09-02', 'Grand Palace entry'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'MEAL', 35.00, 'USD', '2026-09-02', 'Chinatown street food night tour'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'TRANSPORT', 65.00, 'USD', '2026-09-08', 'Flight Bangkok → Hanoi'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'STAY', 120.00, 'USD', '2026-09-08', 'Old Quarter hotel (5 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'MEAL', 3.00, 'USD', '2026-09-09', 'Phở bò breakfast'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'TRANSPORT', 90.00, 'USD', '2026-09-14', 'Flight Hanoi → Bali'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'STAY', 250.00, 'USD', '2026-09-14', 'Ubud villa (7 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'ACTIVITY', 30.00, 'USD', '2026-09-18', 'Surfing lesson in Canggu'),
+  ((SELECT id FROM trips WHERE name = 'Southeast Asia Explorer' LIMIT 1),
+   'OTHER', 15.00, 'USD', '2026-09-15', 'Scooter rental (1 day)'),
+
+-- Charlie: Middle East & Turkey (USD)
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'TRANSPORT', 450.00, 'USD', '2026-11-05', 'Flight to Dubai'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'STAY', 600.00, 'USD', '2026-11-05', 'Dubai Marina hotel (5 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'ACTIVITY', 55.00, 'USD', '2026-11-06', 'Burj Khalifa At The Top tickets'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'ACTIVITY', 70.00, 'USD', '2026-11-07', 'Desert safari & dune bashing'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'MEAL', 85.00, 'USD', '2026-11-08', 'Dinner at Pierchic'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'TRANSPORT', 120.00, 'USD', '2026-11-11', 'Flight Dubai → Marrakech'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'STAY', 160.00, 'USD', '2026-11-11', 'Riad in the Medina (3 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'MEAL', 25.00, 'USD', '2026-11-12', 'Tagine and mint tea in Jemaa el-Fnaa'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'OTHER', 30.00, 'USD', '2026-11-13', 'Traditional hammam experience'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'TRANSPORT', 95.00, 'USD', '2026-11-15', 'Flight Marrakech → Istanbul'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'STAY', 240.00, 'USD', '2026-11-15', 'Boutique hotel near Sultanahmet (5 nights)'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'ACTIVITY', 20.00, 'USD', '2026-11-16', 'Bosphorus sunset cruise'),
+  ((SELECT id FROM trips WHERE name = 'Middle East & Turkey' LIMIT 1),
+   'MEAL', 15.00, 'USD', '2026-11-17', 'Turkish breakfast feast by the waterfront')
+ON CONFLICT DO NOTHING;
+

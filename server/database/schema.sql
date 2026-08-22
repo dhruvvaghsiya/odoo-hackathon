@@ -237,3 +237,40 @@ CREATE TABLE IF NOT EXISTS trip_activities (
 CREATE INDEX IF NOT EXISTS idx_trip_activities_stop_id     ON trip_activities (trip_stop_id);
 CREATE INDEX IF NOT EXISTS idx_trip_activities_activity_id ON trip_activities (activity_id);
 CREATE INDEX IF NOT EXISTS idx_trip_activities_date        ON trip_activities (activity_date);
+
+
+-- ============================================================
+-- 7. EXPENSES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS expenses (
+  id            UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
+  trip_id       UUID          NOT NULL
+                               REFERENCES trips (id) ON DELETE CASCADE,
+  category      VARCHAR(20)   NOT NULL,
+  amount        NUMERIC(12,2) NOT NULL,
+  currency      VARCHAR(3)    NOT NULL DEFAULT 'USD',
+  expense_date  DATE,
+  description   TEXT,
+  created_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT chk_expenses_category
+    CHECK (category IN ('TRANSPORT', 'STAY', 'ACTIVITY', 'MEAL', 'OTHER')),
+
+  CONSTRAINT chk_expenses_amount
+    CHECK (amount >= 0),
+
+  CONSTRAINT chk_expenses_currency_len
+    CHECK (char_length(currency) = 3)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_expenses_trip_id       ON expenses (trip_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_category      ON expenses (category);
+CREATE INDEX IF NOT EXISTS idx_expenses_expense_date  ON expenses (expense_date);
+
+-- Trigger
+CREATE OR REPLACE TRIGGER trg_expenses_updated_at
+  BEFORE UPDATE ON expenses
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+

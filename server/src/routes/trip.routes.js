@@ -16,6 +16,8 @@ const {
 } = require('../controllers/scheduling.controller');
 const authenticate = require('../middleware/auth.middleware');
 const stopRoutes = require('./stop.routes');
+const expenseRoutes = require('./expense.routes');
+const { getBudget } = require('./expense.routes');
 
 const router = Router();
 
@@ -36,8 +38,12 @@ router.patch('/:tripId/stops/reorder', reorderStops);
 router.get('/:tripId/timeline', getTimeline);
 router.patch('/:tripId/activities/reorder', reorderActivities);
 
-// ── Nested stop routes (must come after named paths) ───
+// ── Budget summary ─────────────────────────────────────
+router.get('/:tripId/budget', getBudget);
+
+// ── Nested sub-routes (must come after named paths) ────
 router.use('/:tripId/stops', stopRoutes);
+router.use('/:tripId/expenses', expenseRoutes);
 
 module.exports = router;
 
