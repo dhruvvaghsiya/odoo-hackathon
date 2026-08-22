@@ -152,3 +152,88 @@ CREATE TABLE IF NOT EXISTS trip_stops (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_trip_stops_trip_id ON trip_stops (trip_id);
 CREATE INDEX IF NOT EXISTS idx_trip_stops_city_id ON trip_stops (city_id);
+
+
+-- ============================================================
+-- 5. ACTIVITIES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS activities (
+  id               UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
+  city_id          UUID          NOT NULL
+                                  REFERENCES cities (id) ON DELETE CASCADE,
+  name             VARCHAR(200)  NOT NULL,
+  description      TEXT,
+  image            TEXT,
+  type             VARCHAR(50)   NOT NULL,
+  cost             NUMERIC(10,2),
+  duration_minutes INTEGER,
+  popularity       INTEGER       DEFAULT 0,
+  created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+
+  -- Same activity name should not appear twice for the same city
+  CONSTRAINT uq_activities_city_name
+    UNIQUE (city_id, name),
+
+  CONSTRAINT chk_activities_type
+    CHECK (type IN (
+      'sightseeing', 'food', 'adventure', 'culture',
+      'nightlife', 'shopping', 'nature', 'wellness',
+      'entertainment', 'transport', 'other'
+    )),
+
+  CONSTRAINT chk_activities_cost
+    CHECK (cost IS NULL OR cost >= 0),
+
+  CONSTRAINT chk_activities_duration
+    CHECK (duration_minutes IS NULL OR duration_minutes > 0),
+
+  CONSTRAINT chk_activities_popularity
+    CHECK (popularity >= 0)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_activities_city_id    ON activities (city_id);
+CREATE INDEX IF NOT EXISTS idx_activities_type       ON activities (type);
+CREATE INDEX IF NOT EXISTS idx_activities_popularity ON activities (popularity DESC);
+
+-- Trigger
+CREATE OR REPLACE TRIGGER trg_activities_updated_at
+  BEFORE UPDATE ON activities
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+
+-- ============================================================
+-- 6. TRIP_ACTIVITIES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS trip_activities (
+  id              UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
+  trip_stop_id    UUID          NOT NULL
+                                 REFERENCES trip_stops (id) ON DELETE CASCADE,
+  activity_id     UUID          NOT NULL
+                                 REFERENCES activities (id) ON DELETE RESTRICT,
+  activity_date   DATE,
+  start_time      TIME,
+  end_time        TIME,
+  activity_order  INTEGER       NOT NULL,
+  notes           TEXT,
+  estimated_cost  NUMERIC(10,2),
+
+  -- Prevent duplicate ordering within the same trip stop
+  CONSTRAINT uq_trip_activities_stop_order
+    UNIQUE (trip_stop_id, activity_order),
+
+  CONSTRAINT chk_trip_activities_times
+    CHECK (end_time IS NULL OR start_time IS NULL OR end_time > start_time),
+
+  CONSTRAINT chk_trip_activities_order_positive
+    CHECK (activity_order > 0),
+
+  CONSTRAINT chk_trip_activities_cost
+    CHECK (estimated_cost IS NULL OR estimated_cost >= 0)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_trip_activities_stop_id     ON trip_activities (trip_stop_id);
+CREATE INDEX IF NOT EXISTS idx_trip_activities_activity_id ON trip_activities (activity_id);
+CREATE INDEX IF NOT EXISTS idx_trip_activities_date        ON trip_activities (activity_date);

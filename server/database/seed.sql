@@ -232,3 +232,249 @@ INSERT INTO trip_stops (trip_id, city_id, start_date, end_date, stop_order, note
     'Hagia Sophia, Grand Bazaar, Bosphorus cruise, and baklava overload.'
   )
 ON CONFLICT DO NOTHING;
+
+
+-- ============================================================
+-- ACTIVITIES
+-- ============================================================
+-- Activities seeded for cities that appear in trip stops, plus extras
+
+-- ── Paris ──────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Paris' AND country = 'France'),
+   'Louvre Museum Visit', 'Explore the world''s largest art museum, home to the Mona Lisa and Venus de Milo.', NULL, 'culture', 17.00, 180, 98),
+  ((SELECT id FROM cities WHERE name = 'Paris' AND country = 'France'),
+   'Eiffel Tower Summit', 'Ride the elevator to the top of the iconic iron lattice tower for panoramic views.', NULL, 'sightseeing', 26.80, 120, 99),
+  ((SELECT id FROM cities WHERE name = 'Paris' AND country = 'France'),
+   'Montmartre Walking Tour', 'Wander the cobblestone streets of the artist quarter, ending at Sacré-Cœur.', NULL, 'sightseeing', 15.00, 150, 85),
+  ((SELECT id FROM cities WHERE name = 'Paris' AND country = 'France'),
+   'Seine River Cruise', 'A one-hour evening cruise past illuminated landmarks along the Seine.', NULL, 'entertainment', 15.00, 60, 90),
+  ((SELECT id FROM cities WHERE name = 'Paris' AND country = 'France'),
+   'French Pastry Workshop', 'Learn to make croissants and éclairs from a Parisian pâtissier.', NULL, 'food', 85.00, 180, 72)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Amsterdam ──────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands'),
+   'Rijksmuseum Tour', 'Admire Rembrandt''s Night Watch and 8,000 works of Dutch Golden Age art.', NULL, 'culture', 22.50, 180, 92),
+  ((SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands'),
+   'Canal Boat Tour', 'Glide through UNESCO-listed canal rings on a guided glass-top boat.', NULL, 'sightseeing', 18.00, 75, 94),
+  ((SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands'),
+   'Anne Frank House', 'Visit the secret annex where Anne Frank wrote her famous diary.', NULL, 'culture', 16.00, 90, 91),
+  ((SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands'),
+   'Vondelpark Cycling', 'Rent a bike and explore Amsterdam''s beloved urban park like a local.', NULL, 'nature', 12.00, 120, 78)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Prague ─────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic'),
+   'Prague Castle Complex', 'Tour the largest ancient castle in the world, including St. Vitus Cathedral.', NULL, 'sightseeing', 14.00, 180, 93),
+  ((SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic'),
+   'Charles Bridge Sunset Walk', 'Stroll across the 14th-century Gothic bridge at golden hour.', NULL, 'sightseeing', 0.00, 60, 88),
+  ((SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic'),
+   'Czech Beer Tasting', 'Sample Pilsner Urquell, Staropramen, and local microbrews at a historic pub.', NULL, 'food', 25.00, 120, 82),
+  ((SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic'),
+   'Old Town Square Astronomical Clock', 'Watch the hourly procession of the 600-year-old astronomical clock.', NULL, 'culture', 0.00, 30, 86)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Tokyo ──────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Tokyo' AND country = 'Japan'),
+   'Senso-ji Temple Visit', 'Tokyo''s oldest temple in Asakusa, with the iconic Kaminarimon gate.', NULL, 'culture', 0.00, 90, 95),
+  ((SELECT id FROM cities WHERE name = 'Tokyo' AND country = 'Japan'),
+   'Tsukiji Outer Market Food Tour', 'Taste fresh sushi, tamagoyaki, and matcha across dozens of street stalls.', NULL, 'food', 45.00, 150, 93),
+  ((SELECT id FROM cities WHERE name = 'Tokyo' AND country = 'Japan'),
+   'TeamLab Borderless', 'Immerse yourself in a digital art museum of interactive, flowing projections.', NULL, 'entertainment', 32.00, 120, 89),
+  ((SELECT id FROM cities WHERE name = 'Tokyo' AND country = 'Japan'),
+   'Shibuya Crossing & Hachiko', 'Experience the world''s busiest pedestrian crossing and visit the loyal dog statue.', NULL, 'sightseeing', 0.00, 45, 91),
+  ((SELECT id FROM cities WHERE name = 'Tokyo' AND country = 'Japan'),
+   'Akihabara Electronics & Anime', 'Browse multi-story arcades, manga shops, and maid cafés in Electric Town.', NULL, 'shopping', 0.00, 180, 80)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Bangkok ────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand'),
+   'Grand Palace & Wat Phra Kaew', 'Marvel at Thailand''s most sacred temple and the glittering royal palace complex.', NULL, 'sightseeing', 16.00, 150, 96),
+  ((SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand'),
+   'Chatuchak Weekend Market', 'Haggle for souvenirs across 15,000 stalls in one of the world''s largest markets.', NULL, 'shopping', 0.00, 240, 88),
+  ((SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand'),
+   'Street Food Night Tour', 'Eat your way through Yaowarat (Chinatown) with a local guide — pad thai, mango sticky rice, and more.', NULL, 'food', 35.00, 180, 92),
+  ((SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand'),
+   'Wat Arun at Sunset', 'Cross the Chao Phraya River to watch the Temple of Dawn glow at golden hour.', NULL, 'culture', 3.00, 90, 85),
+  ((SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand'),
+   'Thai Massage Experience', 'Unwind with a traditional two-hour Thai massage at a riverside spa.', NULL, 'wellness', 25.00, 120, 79)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Bali ───────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia'),
+   'Tegallalang Rice Terraces', 'Walk through sculpted emerald-green rice paddies in the highlands of Ubud.', NULL, 'nature', 5.00, 120, 90),
+  ((SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia'),
+   'Uluwatu Temple & Kecak Dance', 'Clifftop temple with a dramatic fire-dance performance at sunset.', NULL, 'culture', 10.00, 150, 88),
+  ((SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia'),
+   'Surfing in Canggu', 'Catch waves at Echo Beach or Batu Bolong — suitable for beginners and intermediates.', NULL, 'adventure', 30.00, 180, 83),
+  ((SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia'),
+   'Ubud Yoga Retreat', 'Morning vinyasa flow at an open-air shala surrounded by jungle.', NULL, 'wellness', 15.00, 90, 76)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Barcelona ──────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Barcelona' AND country = 'Spain'),
+   'Sagrada Familia Tour', 'Gaudí''s unfinished masterpiece — a basilica unlike anything else on Earth.', NULL, 'sightseeing', 26.00, 120, 97),
+  ((SELECT id FROM cities WHERE name = 'Barcelona' AND country = 'Spain'),
+   'Park Güell', 'Mosaic-covered terraces and whimsical architecture with panoramic city views.', NULL, 'sightseeing', 10.00, 90, 89),
+  ((SELECT id FROM cities WHERE name = 'Barcelona' AND country = 'Spain'),
+   'La Boqueria Market', 'Wander through Barcelona''s famous covered market tasting jamón, fresh juice, and seafood.', NULL, 'food', 0.00, 90, 86),
+  ((SELECT id FROM cities WHERE name = 'Barcelona' AND country = 'Spain'),
+   'Barceloneta Beach Day', 'Soak up the Mediterranean sun on Barcelona''s most popular urban beach.', NULL, 'nature', 0.00, 240, 82)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Rome ───────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Rome' AND country = 'Italy'),
+   'Colosseum & Roman Forum', 'Step inside the ancient gladiatorial arena and walk through the ruins of imperial Rome.', NULL, 'sightseeing', 18.00, 180, 96),
+  ((SELECT id FROM cities WHERE name = 'Rome' AND country = 'Italy'),
+   'Vatican Museums & Sistine Chapel', 'See Michelangelo''s ceiling fresco and millennia of papal art collections.', NULL, 'culture', 17.00, 210, 95),
+  ((SELECT id FROM cities WHERE name = 'Rome' AND country = 'Italy'),
+   'Trastevere Food Tour', 'Taste supplì, cacio e pepe, and gelato in Rome''s most charming neighborhood.', NULL, 'food', 55.00, 180, 84),
+  ((SELECT id FROM cities WHERE name = 'Rome' AND country = 'Italy'),
+   'Trevi Fountain & Spanish Steps', 'Toss a coin in the Baroque fountain and climb the iconic staircase at sunset.', NULL, 'sightseeing', 0.00, 60, 90)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Dubai ──────────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Dubai' AND country = 'UAE'),
+   'Burj Khalifa At The Top', 'Ascend to the 148th floor of the world''s tallest building for 360° desert-to-sea views.', NULL, 'sightseeing', 55.00, 90, 95),
+  ((SELECT id FROM cities WHERE name = 'Dubai' AND country = 'UAE'),
+   'Desert Safari & Dune Bashing', 'Adrenaline-pumping 4×4 ride over red dunes, followed by a BBQ dinner under the stars.', NULL, 'adventure', 70.00, 300, 90),
+  ((SELECT id FROM cities WHERE name = 'Dubai' AND country = 'UAE'),
+   'Dubai Mall & Aquarium', 'Shop in the world''s largest mall and walk through an underwater tunnel of sharks.', NULL, 'shopping', 35.00, 240, 86),
+  ((SELECT id FROM cities WHERE name = 'Dubai' AND country = 'UAE'),
+   'Dubai Marina Night Walk', 'Stroll the glittering waterfront promenade with skyline reflections on the marina.', NULL, 'nightlife', 0.00, 90, 78)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+-- ── Istanbul ───────────────────────────────────────
+INSERT INTO activities (city_id, name, description, image, type, cost, duration_minutes, popularity) VALUES
+  ((SELECT id FROM cities WHERE name = 'Istanbul' AND country = 'Turkey'),
+   'Hagia Sophia', 'A 1,500-year-old architectural marvel — once a cathedral, then a mosque, now a museum-mosque.', NULL, 'culture', 0.00, 90, 94),
+  ((SELECT id FROM cities WHERE name = 'Istanbul' AND country = 'Turkey'),
+   'Grand Bazaar Shopping', 'Navigate 4,000+ shops in one of the oldest covered markets in the world.', NULL, 'shopping', 0.00, 180, 88),
+  ((SELECT id FROM cities WHERE name = 'Istanbul' AND country = 'Turkey'),
+   'Bosphorus Sunset Cruise', 'Sail between Europe and Asia as the sun sets over minarets and palaces.', NULL, 'sightseeing', 20.00, 120, 91),
+  ((SELECT id FROM cities WHERE name = 'Istanbul' AND country = 'Turkey'),
+   'Turkish Breakfast Feast', 'Enjoy a traditional spread of cheeses, olives, eggs, honey, and çay by the waterfront.', NULL, 'food', 15.00, 90, 82)
+ON CONFLICT (city_id, name) DO NOTHING;
+
+
+-- ============================================================
+-- TRIP ACTIVITIES
+-- ============================================================
+-- Link activities to trip stops for the seeded trips
+
+-- Alice: Summer in Europe — Paris stop
+INSERT INTO trip_activities (trip_stop_id, activity_id, activity_date, start_time, end_time, activity_order, notes, estimated_cost) VALUES
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Louvre Museum Visit' AND city_id = (SELECT id FROM cities WHERE name = 'Paris' AND country = 'France')),
+    '2026-06-16', '09:30', '12:30', 1,
+    'Book skip-the-line tickets in advance!', 17.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Seine River Cruise' AND city_id = (SELECT id FROM cities WHERE name = 'Paris' AND country = 'France')),
+    '2026-06-16', '19:00', '20:00', 2,
+    'Evening cruise — bring a jacket.', 15.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Eiffel Tower Summit' AND city_id = (SELECT id FROM cities WHERE name = 'Paris' AND country = 'France')),
+    '2026-06-17', '10:00', '12:00', 3,
+    'Go early to beat the crowds.', 26.80
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Montmartre Walking Tour' AND city_id = (SELECT id FROM cities WHERE name = 'Paris' AND country = 'France')),
+    '2026-06-18', '14:00', '16:30', 4,
+    'End at Sacré-Cœur for the view.', 15.00
+  ),
+
+-- Alice: Summer in Europe — Amsterdam stop
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 2),
+    (SELECT id FROM activities WHERE name = 'Canal Boat Tour' AND city_id = (SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands')),
+    '2026-06-22', '11:00', '12:15', 1,
+    'Glass-top boat — great for photos.', 18.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 2),
+    (SELECT id FROM activities WHERE name = 'Rijksmuseum Tour' AND city_id = (SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands')),
+    '2026-06-23', '10:00', '13:00', 2,
+    'Don''t miss the Night Watch gallery.', 22.50
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 2),
+    (SELECT id FROM activities WHERE name = 'Anne Frank House' AND city_id = (SELECT id FROM cities WHERE name = 'Amsterdam' AND country = 'Netherlands')),
+    '2026-06-24', '09:00', '10:30', 3,
+    'Tickets sell out weeks ahead — book now.', 16.00
+  ),
+
+-- Alice: Summer in Europe — Prague stop
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Prague Castle Complex' AND city_id = (SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic')),
+    '2026-06-28', '09:00', '12:00', 1,
+    'Start early — the complex is huge.', 14.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Charles Bridge Sunset Walk' AND city_id = (SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic')),
+    '2026-06-28', '18:30', '19:30', 2,
+    'Best light for photography.', 0.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Summer in Europe' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Czech Beer Tasting' AND city_id = (SELECT id FROM cities WHERE name = 'Prague' AND country = 'Czech Republic')),
+    '2026-06-29', '17:00', '19:00', 3,
+    'Try the dark lager!', 25.00
+  ),
+
+-- Bob: Southeast Asia Explorer — Bangkok stop
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Grand Palace & Wat Phra Kaew' AND city_id = (SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand')),
+    '2026-09-02', '08:30', '11:00', 1,
+    'Dress modestly — long pants and covered shoulders required.', 16.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Street Food Night Tour' AND city_id = (SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand')),
+    '2026-09-02', '18:00', '21:00', 2,
+    'Come hungry!', 35.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 1),
+    (SELECT id FROM activities WHERE name = 'Chatuchak Weekend Market' AND city_id = (SELECT id FROM cities WHERE name = 'Bangkok' AND country = 'Thailand')),
+    '2026-09-06', '10:00', '14:00', 3,
+    'Saturday is best — more stalls open.', 0.00
+  ),
+
+-- Bob: Southeast Asia Explorer — Bali stop
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Tegallalang Rice Terraces' AND city_id = (SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia')),
+    '2026-09-15', '08:00', '10:00', 1,
+    'Go early to avoid tour groups.', 5.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Uluwatu Temple & Kecak Dance' AND city_id = (SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia')),
+    '2026-09-16', '16:00', '18:30', 2,
+    'Arrive before 5pm to get good seats for the dance.', 10.00
+  ),
+  (
+    (SELECT ts.id FROM trip_stops ts JOIN trips t ON ts.trip_id = t.id WHERE t.name = 'Southeast Asia Explorer' AND ts.stop_order = 3),
+    (SELECT id FROM activities WHERE name = 'Surfing in Canggu' AND city_id = (SELECT id FROM cities WHERE name = 'Bali' AND country = 'Indonesia')),
+    '2026-09-18', '07:00', '10:00', 3,
+    'Board rental included. Morning swell is best.', 30.00
+  )
+ON CONFLICT DO NOTHING;
